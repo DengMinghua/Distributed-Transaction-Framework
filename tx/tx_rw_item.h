@@ -10,14 +10,18 @@ private:
     TxRwMode rw_mode;
   
     TxRwAddress src;
-    TxRwLength length;
+    TxRwLength src_length;
   
     TxRwAddress des;
+    TxRwLength des_length
 
     TxRpcType rpc_type;
 
     int primary_node;
     int backup_nodes[TX_MAX_BACKUPS];
+
+    bool done_read;
+    bool done_lock;
 
 public:
     TxRwItem(TxRwAddress src_,
