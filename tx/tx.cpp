@@ -54,30 +54,121 @@ TxStatus Tx::do_read() {
     for (size_t i = read_cnt; i < read_size; i++) {
         TxRwItem * read_item = read_set[i];
 
-        RpcReq * read_req = rpc_client->new_req(read_item->rpc_type, read_item->primary_node, read_item->des, length);
-        tx_rpc_req[r_index++] = read_req;
+        RpcReq * read_req = rpc_client->new_req(read_item->rpc_type, read_item->primary_node, read_item->des, des_length);
+        tx_rpc_req[req_index++] = read_req;
 
-        size_t req_size = ds_forge_read_req(read_req, read_item->src, read_item->length);
+        size_t req_size = ds_forge_read_req(read_req, read_item->src, read_item->src_length);
         read_req->freeze();
     }
 
     for (size_t i = write_cnt; i < write_size; i++) {
         TxRwItem * write_item = write_set[i];
 
-        RpcReq * write_req = rpc_client->new_req(write_item->rpc_type, write_item->primary_node, read_item->des, length);
-        tx_rpc_req[r_index++] = write_req;
-
-        size_t req_size = ds_forge_write_req(write_req, write_item->des, write_item->length, write_item->src);
+        RpcReq * write_req = rpc_client->new_req(write_item->rpc_type, write_item->primary_node, read_item->des, des_length);
+        tx_rpc_req[req_index] = write_req;
+        
+        size_t req_size = ds_forge_write_req(write_req, write_item->des, write_item->src_length, write_item->src);
 
         write_req->freeze();
     }
+
+    rpc->send_reqs();
+    
+    int resp_cnt = 0;
+
+    for (size_t i = read_cnt; i < read_size; i++) {
+        TxRwItem * read_item = &read_set[i];
+        DsRespType read_resp_type = (DsRespType) tx_rpc_req[resp_cnt]->resp_type;
+
+        switch(read_resp_type) {
+                case DsRespType::READ_SUCCESS:
+                        read_item->des_length = tx_rpc_req[resp_cnt]->resp_len - sizeof(RpcMsgHdr);
+                        done_read = true;
+                        break;
+                case DsRespType::READ_FAILED:
+                        read_item->des_length = 0;
+                        done_read = false;
+                        break;
+                case DsRespType::READ_LOCKED:
+                        done_read = false;
+                        tx_status = TxStatus::ABORTING;
+                        break;
+                default:
+                        printf("Unknow response for read item requesting (%ld, %d) from node %d\n", 
+                                        (long)read_item->src, (int)read_item->src_length,
+                                        (int)read_item->primary_node);
+        }
+        resp_cnt++;
+    }
+
+    for (size_t i = write_cnt; i < write_size; i++) {
+        TxRwItem * write_item = &write_set[i];
+        DsRespType write_resp_type = (DsRespType) tx_rpc_req[resp_cnt]->resp_type;
+
+        switch(write_resp_type) {
+                case DsRespType::RNL_SUCCESS:
+                        read_item->src_length = tx_rpc_req[resp_cnt]->resp_len - sizeof(RpcMsgHdr);
+                        done_lock = true;
+                        break;
+                case DsRespType::RNL_FAILED:
+                case DSRespType::RNL_LOCKED:
+                        done_lock = false;
+                        tx_status = TxStatus::ABORTING;
+                        break;
+                default:
+                        printf("Unknow response for read item requesting (%ld, %d) from node %d\n",
+                                         (long)read_item->src, (int)read_item->src_length,
+                                         (int)read_item->primary_node);
+        }
+
+        resp_cnt++;
+    }
+
+    write_cnt = write_size;
+    read_cnt = read_size;
+
+    return tx_status;
 }
+
 
 TxStatus Tx::commit() {
 
+
 }
 
-TxStatus Tx::validate
+bool Tx::validate() {
+    rpc_client->clear_req_batch();
+
+    for (size_t i = 0; i < read_cnt; i++) {
+        TxRwItem * read_item = &read_set[i];
+
+        if (read_item->done_read) {
+               
+        RpcReq * read_req = rpc_client->new_req(read_item->rpc_type, read_item->primary_node, read_item->des, des_length);
+        tx_rpc_req[i] = read_req;
+
+        size_t req_size = ds_forge_read_req(read_req, read_item->src, read_item->src_length);
+        read_req->freeze();
+        }
+    }
+
+    rpc->send_reqs();
+
+    for (size_t i = 0; i < read_cnt; i++) {
+        TxRwItem * read_item = &read_set[i];
+
+        DsRespType read_resp_type = (DsRespType) tx_rpc_req[i]->resp_type;
+
+        if (read_resp_type == DsRespType::READ_SUCCESS) {
+            
+        }
+
+        else return false;
+    }
+
+    return true;
+
+}
 
 
  
