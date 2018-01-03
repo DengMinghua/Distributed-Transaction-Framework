@@ -22,7 +22,7 @@ private:
     Rpc *rpc_client;    
     
     RpcReq *tx_rpc_req[MAX_TX_RPC];
-    size_t r_index;
+    size_t req_index;
 public:
     Tx(Mappings mappings_):
             mappings(mappings_);
