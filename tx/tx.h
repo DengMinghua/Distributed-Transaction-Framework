@@ -31,7 +31,7 @@ private:
     size_t req_index;
 public:
     Tx(Mappings * mappings_):
-            mappings(mappings_) {};
+            mappings(mappings_), tx_status(TxStatus::COMMITTED) {};
     void start();
     
     int add_to_write_set(TxRwAddress local_addr, TxRwLength local_len, 

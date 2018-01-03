@@ -11,6 +11,11 @@ void Tx::start() {
 
     r_index = 0;
     w_index = 0;
+    
+#ifdef TX_DEBUG
+    printf("%s\n",__PRETTY_FUNCTION__);
+#endif
+    
 }
 
 int Tx::add_to_read_set(TxRwAddress local_address, TxRwLength local_length, 

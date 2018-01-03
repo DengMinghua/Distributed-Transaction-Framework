@@ -2,6 +2,7 @@
 #define MAPPINGS_H_
 #include <assert.h>
 #include <stdint.h>
+
 class Mappings {
 private:
     int tot_num_nodes;
@@ -20,7 +21,7 @@ public:
             assert(num_replicas < tot_num_nodes);
         }
 
-    int get_primary(TxRwAddress address) {
+    int get_primary(uint8_t* address) {
         return ((uint64_t)address % tot_num_primarys);
     }
 
@@ -31,7 +32,7 @@ public:
         return ((primary + back_i) % tot_num_nodes);
     }
 
-    int get_backups(TxRwAddress address, int back_i) {
+    int get_backups(uint8_t* address, int back_i) {
         return get_backups_from_primary(get_primary(address), back_i);
     }
 

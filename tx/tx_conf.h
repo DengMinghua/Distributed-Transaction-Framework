@@ -3,6 +3,7 @@
 
 #include<assert.h>
 
+#define TX_DEBUG 1
 //#define TX_DEBUG_ASSERT 0
 //#define tx_assert(x) \
 //    do { if (TX_DEBUG_ASSERT) assert(x); } while (0)

@@ -4,7 +4,7 @@
 #define MAX_TX_RPC 256
 
 #include <cstddef>
-
+#include <stdint.h>
 enum TxStatus {
     PROGRESSING,
     COMMITTED,
@@ -27,7 +27,7 @@ enum TxRpcType {
     RPC_UNLOCK
 };
 
-typedef void* TxRwAddress;
+typedef uint8_t* TxRwAddress;
 typedef size_t TxRwLength;
 
 #endif

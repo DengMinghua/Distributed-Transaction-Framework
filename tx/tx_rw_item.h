@@ -32,7 +32,7 @@ struct TxRwItem {
             remote_address(remote_),
             remote_length(remote_length_),
             rw_mode(mode_) {};
-    TxRwItem();
+    TxRwItem(){};
 
     inline void bind_primary(Mappings * mappings) {
         primary_node = mappings->get_primary(remote_address);
