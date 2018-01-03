@@ -1,16 +1,17 @@
 #ifndef DS_H_
 #define DS_H_
 
-#include "rpc.h"
-#include "mappings.h"
+#include "../rpc/rpc.h"
+#include "../mappings/mappings.h"
+#include <cstring>
 
 enum DsReqType {
-    READ,
-    READNLOCK,
-    DELETE,
-    UNLOCK,
-    UPDATE
-}
+    DS_READ,
+    DS_READNLOCK,
+    DS_DELETE,
+    DS_UNLOCK,
+    DS_UPDATE
+};
 
 enum DsRespType {
     READ_SUCCESS,
@@ -24,25 +25,25 @@ enum DsRespType {
     UNLOCK_SUCCESS,
 
     UPDATE_SUCCESS
-}
+};
 
 struct DsReadReq {
     uint32_t req_type;
-    uint32_t address;
+    uint8_t * address;
     uint32_t length;
-}
+};
 
 struct DsWriteReq {
     uint32_t req_type;
-    uint32_t address;
+    uint8_t * address;
     uint32_t length;
-}
+};
 
 size_t ds_forge_read_req(RpcReq *rpc_req,
                 DsReqType type,
-                uint32_t address,
+                uint8_t * address,
                 uint32_t length) {
-    DsReadReq * req = rpc_req->req_buf;
+    DsReadReq * req = (DsReadReq * )rpc_req->req_buf;
     req-> req_type = type;
     req-> address = address;
     req-> length = length;
@@ -51,15 +52,15 @@ size_t ds_forge_read_req(RpcReq *rpc_req,
 
 size_t ds_forge_write_req(RpcReq *rpc_req,
                 DsReqType type,
-                uint32_t des_address,
+                uint8_t * des_address,
                 uint32_t length,
-                uint32_t src_address) {
-    DsWriteReq * req = rpc_req->req_buf;
+                uint8_t * src_address) {
+    DsWriteReq * req = (DsWriteReq * )rpc_req->req_buf;
     req-> req_type = type;
-    req-> address = address;
+    req-> address = src_address;
     req->length = length;
-    uint32_t * val_ptr = (rpc_req->req_buf + sizeof(DsWriteReq));
-    memcpy((char*)val_ptr, (char*)src_address, (size_t)length);
+    uint8_t * val_ptr = (rpc_req->req_buf + sizeof(DsWriteReq));
+    memcpy((uint8_t*)val_ptr, (uint8_t*)src_address, (size_t)length);
     return sizeof(DsWriteReq) + length;
 }
 

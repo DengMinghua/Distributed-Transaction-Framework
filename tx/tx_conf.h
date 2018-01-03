@@ -3,9 +3,9 @@
 
 #include<assert.h>
 
-#define TX_DEBUG_ASSERT 0
-#define tx_assert(x) \
-    do { if (TX_DEBUG_ASSERT) assert(x); } while (0)
+//#define TX_DEBUG_ASSERT 0
+//#define tx_assert(x) \
+//    do { if (TX_DEBUG_ASSERT) assert(x); } while (0)
 
 #define TX_MAX_BACKUPS 2
 

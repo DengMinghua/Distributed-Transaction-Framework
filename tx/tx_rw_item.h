@@ -3,17 +3,16 @@
 
 #include "tx_def.h"
 #include "tx_conf.h"
-#include "mappings.h"
+#include "../mappings/mappings.h"
 
-class TxRwItem {
-private:
+struct TxRwItem {
     TxRwMode rw_mode;
   
-    TxRwAddress src;
-    TxRwLength src_length;
+    TxRwAddress local_address;
+    TxRwLength local_length;
   
-    TxRwAddress des;
-    TxRwLength des_length
+    TxRwAddress remote_address;
+    TxRwLength remote_length;
 
     TxRpcType rpc_type;
 
@@ -23,33 +22,35 @@ private:
     bool done_read;
     bool done_lock;
 
-public:
-    TxRwItem(TxRwAddress src_,
-                TxRwAddress des_,
-                TxRwLength length_,
+    TxRwItem(TxRwAddress local_,
+                TxRwLength local_length_,
+                TxRwAddress remote_,
+                TxRwLength remote_length_,
                 TxRwMode mode_):
-            src(src_),
-            des(des_),
-            length(length_),
-            rw_mode(mode_);
+            local_address(local_),
+            local_length(local_length_),
+            remote_address(remote_),
+            remote_length(remote_length_),
+            rw_mode(mode_) {};
+    TxRwItem();
 
     inline void bind_primary(Mappings * mappings) {
-        primary_node = mappings->get_primary(src);
+        primary_node = mappings->get_primary(remote_address);
     }
 
     inline void bind_backups(Mappings * mappings) {
-        for (int i = 0; i < mappings->num_backups; i++) {
-            backup_nodes[i] = mappings->get_backups(src, i);
+        for (int i = 0; i < mappings->get_num_backups(); i++) {
+            backup_nodes[i] = mappings->get_backups(remote_address, i);
         }
     }
 
     inline int primary() {
-        return primary;
+        return primary_node;
     }
 
     inline int backups(int i) {
-        return backups[i];
+        return backup_nodes[i];
     }
-}
+};
 
 #endif
