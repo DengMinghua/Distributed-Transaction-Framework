@@ -34,5 +34,9 @@ public:
     
     TxStatus do_read();
 
-    TxStatus 
+    TxStatus commit();
+
+    bool validate();
+
+    void abort();
 }
