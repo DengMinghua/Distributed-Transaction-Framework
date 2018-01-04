@@ -26,9 +26,11 @@ private:
     size_t w_index;
 
     Rpc *rpc_client;    
-    
+
     RpcReq *tx_rpc_req[MAX_TX_RPC];
     size_t req_index;
+
+    uint8_t * local_log_buffer;
 public:
     Tx(Mappings * mappings_):
             mappings(mappings_), tx_status(TxStatus::COMMITTED),
@@ -56,6 +58,8 @@ public:
     bool validate();
 
     void abort();
+
+    bool log();
 };
 
 #endif

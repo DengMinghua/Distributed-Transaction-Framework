@@ -269,4 +269,25 @@ bool Tx::validate() {
 }
 
 
- 
+bool Tx::log() {
+    assert(w_size >= 0);
+
+    uint8_t buf = local_log_buffer;
+    
+    size_t req_size = 0;
+
+    for (size_t i = 0; i < w_size; i++) {
+        assert(buf, sizeof(uint64_t));
+
+        TxRwItem * write_item = write_set[i];
+        
+        ((uint64_t*)buf)[0] = write_item->remote_address;
+        buf += sizeof(uint64_t);
+        req_size += sizeof(uint64_t);
+
+        memcpy((void*) buf, write_item->local_address, write_item->local_length);
+
+        buf += local_length;
+        req_size += local_length;
+    }
+}
