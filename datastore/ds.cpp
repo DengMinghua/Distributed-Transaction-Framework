@@ -7,6 +7,12 @@ size_t ds_forge_read_req(RpcReq *rpc_req,
     req-> req_type = type;
     req-> address = address;
     req-> length = length;
+#ifdef DS_DEBUG
+    printf("%s\n", __PRETTY_FUNCTION__);
+    printf("\tRead request forged:\n");
+    printf("\trequest type:\t%d\n\t-read %d bytes from address %ld\n",
+                    (int)req->req_type, (int)req->length, (long) req->address);
+#endif
     return sizeof(DsReadReq);
 }
 
