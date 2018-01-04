@@ -9,6 +9,7 @@ An under-constructed distributed transaction framework based on two-sided RDMA.
 * Simple Debug mode for major functions
 
 ## Todo
+* Add a Makefile and some simple tests
 * Logger class for data logging on primray node.
 * Functions to allocate temp buffer for messsage passing.
 * Callback function on server side (forge response for read request/ handle lock request(data partition, locked list)/ handle data commit(logger/ call rmsync()/ response Ack).
