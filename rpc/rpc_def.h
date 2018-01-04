@@ -1,6 +1,8 @@
 #ifndef RPC_DEF_H_
 #define RPC_DEF_H_
 
+#define RPC_DEBUG 1
+
 #define MAX_NODES 8
 
 #define RPC_MAX_QPS 3
@@ -8,6 +10,9 @@
 
 #define MAX_RPC_BATCH_SIZE 64
 #define MAX_COAL_SIZE 64
+
+
+#define MAX_CMSG_BUF_SIZE 4096
 
 #include <cstdint>
 #include <malloc.h>
@@ -22,11 +27,23 @@ struct Buffer {
 
     uint8_t * cur_ptr;
 
+    Buffer(size_t len) {
+        alloc(len);
+    }
+    
+    ~Buffer() {
+        free_buf();
+    }
+
     inline void alloc(size_t len) {
         head_ptr = (uint8_t *) memalign(8, len);
         assert(head_ptr != NULL);
         buf_size = len;
         cur_ptr = head_ptr;
+    }
+
+    inline void free_buf() {
+        free(head_ptr);
     }
 
     inline size_t length() {
@@ -74,6 +91,8 @@ struct RpcCoalMsg {
     
     Buffer req_buf;
     Buffer resp_buf;
+
+    RpcCoalMsg(): req_buf(Buffer(MAX_CMSG_BUF_SIZE)), resp_buf(Buffer(MAX_CMSG_BUF_SIZE)){}
 };
 
 
@@ -89,6 +108,8 @@ struct RpcReqBatch {
     int next_avaliable_c_msg_slot;
     
     inline void clear() {
+        num_reqs = 0;
+        num_reqs_completed = 0;
         assert(num_reqs_completed == num_reqs);
         for (int i = 0; i < MAX_NODES; i++) {
             c_msg[i].node_id = -1;

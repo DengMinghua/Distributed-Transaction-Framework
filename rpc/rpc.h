@@ -21,18 +21,21 @@ public:
                         void * arg);
 
         int required_recvs();
-        ~Rpc();
+        ~Rpc() {};
 
         RpcReq * new_req(uint8_t req_type, int resp_node, uint8_t* resp_buf,
                         size_t max_resp_len) {
+            #ifdef RPC_DEBUG
+                printf("%s\n",__PRETTY_FUNCTION__);
+            #endif
                 
             int req_index = req_batch.num_reqs;
 
             RpcReq * req = &req_batch.reqs[req_index];
+
             req->resp_buf = resp_buf;
             req->max_resp_len = max_resp_len;
             req_batch.num_reqs++;
-
             int c_msg_index = -1;
 
             if (req_batch.c_msg_for_node[resp_node] >= 0) {
@@ -45,16 +48,21 @@ public:
 
                 req_batch.c_msg[c_msg_index].node_id = resp_node;
             }
-
             RpcCoalMsg * cmsg = &req_batch.c_msg[c_msg_index];
-
             RpcMsgHdr * cmsg_hdr = (RpcMsgHdr *) ((cmsg->req_buf).cur_ptr);
             cmsg_hdr->msg_type = req_type;
             cmsg->req_buf.cur_ptr += sizeof(RpcMsgHdr);
-
             req->req_buf = cmsg->req_buf.cur_ptr;
             req->cmsg_hdr = cmsg_hdr;
             req->cmsg_buf = &(cmsg->req_buf);
+        
+            #ifdef RPC_DEBUG
+                //printf("%s\n",__PRETTY_FUNCTION__);
+                printf("\tNew request started:\n\treq type:\t%d\n\treq buff addr:\t%ld\n\tresp node:\t%d\n\tresp buff addr:\t%ld\n\tmax resp len:\t%d\n",
+                                (int)req_type, (long)req->req_buf,
+                                (int)resp_node, (long)resp_buf,
+                                (int)max_resp_len);
+            #endif
 
             return req;
         }
