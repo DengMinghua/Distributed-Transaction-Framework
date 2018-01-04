@@ -36,11 +36,13 @@ int Tx::add_to_read_set(TxRwAddress local_address, TxRwLength local_length,
     assert(mappings != NULL);
     item.bind_primary(mappings);
     item.bind_backups(mappings);
+
     #ifdef TX_DEBUG
         printf("\tPrimary is bound with Node %d\n",item.primary_node);
         for (int i = 0; i < TX_MAX_BACKUPS; i++)
                 printf("\t\tbackup %d is bound with Node %d\n", i, item.backup_nodes[i]);
     #endif
+    assert(r_size < TX_MAX_READ_SET);
     read_set[r_size++] = item;
     return item.primary();
 }
@@ -70,20 +72,25 @@ int Tx::add_to_write_set(TxRwAddress local_address, TxRwLength local_length,
         for (int i = 0; i < TX_MAX_BACKUPS; i++)
                 printf("\t\tbackup %d is bound with Node %d\n", i, item.backup_nodes[i]);
     #endif
-
+    assert(w_size < TX_MAX_WRITE_SET);
     write_set[w_size++] = item;
     return item.primary();
 }
 
 TxStatus Tx::do_read() {
+
+#ifdef TX_DEBUG
+    printf("%s\n", __PRETTY_FUNCTION__);
+#endif
+
     assert(tx_status == TxStatus::PROGRESSING);
 
     assert(r_index <= r_size);
     assert(w_index <= w_size);
-   
+  
+
     rpc_client->clear_req_batch();
-
-
+ 
     for (size_t i = r_index; i < r_size; i++) {
         TxRwItem * read_item = &read_set[i];
 
@@ -106,7 +113,6 @@ TxStatus Tx::do_read() {
 
         write_req->freeze(req_size);
     }
-    
     // Not yet implemented
     //rpc->send_reqs();
     
