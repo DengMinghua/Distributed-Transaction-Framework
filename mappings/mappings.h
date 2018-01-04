@@ -29,7 +29,7 @@ public:
         assert(primary >= 0 && primary < tot_num_primarys);
         assert(back_i >= 0 && back_i < num_backups);
 
-        return ((primary + back_i) % tot_num_nodes);
+        return ((primary + back_i + 1) % tot_num_nodes);
     }
 
     int get_backups(uint8_t* address, int back_i) {

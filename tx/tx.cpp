@@ -20,6 +20,13 @@ void Tx::start() {
 
 int Tx::add_to_read_set(TxRwAddress local_address, TxRwLength local_length, 
                 TxRwAddress remote_address, TxRwLength remote_length) {
+    #ifdef TX_DEBUG
+        printf("%s\n",__PRETTY_FUNCTION__);
+        printf("\tAdd to read set: local (%ld,%d), remote (%ld,%d)\n",
+                        (long)local_address, (int)local_length,
+                        (long)remote_address, (int)remote_length);
+    #endif
+
     assert(tx_status == TxStatus::PROGRESSING);
     assert(local_address != NULL && remote_address != NULL);
 
@@ -29,7 +36,11 @@ int Tx::add_to_read_set(TxRwAddress local_address, TxRwLength local_length,
     assert(mappings != NULL);
     item.bind_primary(mappings);
     item.bind_backups(mappings);
-
+    #ifdef TX_DEBUG
+        printf("\tPrimary is bound with Node %d\n",item.primary_node);
+        for (int i = 0; i < TX_MAX_BACKUPS; i++)
+                printf("\t\tbackup %d is bound with Node %d\n", i, item.backup_nodes[i]);
+    #endif
     read_set[r_size++] = item;
     return item.primary();
 }
@@ -37,6 +48,13 @@ int Tx::add_to_read_set(TxRwAddress local_address, TxRwLength local_length,
 int Tx::add_to_write_set(TxRwAddress local_address, TxRwLength local_length, 
                 TxRwAddress remote_address, TxRwLength remote_length,
                 TxRwMode mode_) {
+    #ifdef TX_DEBUG
+        printf("%s\n",__PRETTY_FUNCTION__);
+        printf("\tAdd to read set: local (%ld,%d), remote (%ld,%d)\n",
+                        (long)local_address, (int)local_length,
+                        (long)remote_address, (int)remote_length);
+    #endif
+
     assert(tx_status == TxStatus::PROGRESSING);
     assert(local_address != NULL && remote_address != NULL);
 
@@ -46,6 +64,12 @@ int Tx::add_to_write_set(TxRwAddress local_address, TxRwLength local_length,
     assert(mappings != NULL);
     item.bind_primary(mappings);
     item.bind_backups(mappings);
+    
+    #ifdef TX_DEBUG
+        printf("\tPrimary is bound with Node %d\n",item.primary_node);
+        for (int i = 0; i < TX_MAX_BACKUPS; i++)
+                printf("\t\tbackup %d is bound with Node %d\n", i, item.backup_nodes[i]);
+    #endif
 
     write_set[w_size++] = item;
     return item.primary();
