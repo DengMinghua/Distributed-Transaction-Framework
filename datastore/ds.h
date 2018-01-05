@@ -2,7 +2,6 @@
 #define DS_H_
 
 #define DS_DEBUG 1
-#include "../rpc/rpc.h"
 #include "../mappings/mappings.h"
 #include <cstring>
 

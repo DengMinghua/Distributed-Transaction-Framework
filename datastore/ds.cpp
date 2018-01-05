@@ -1,3 +1,4 @@
+#include "../rpc/rpc.h"
 #include "ds.h"
 size_t ds_forge_read_req(RpcReq *rpc_req,
                 DsReqType type,
