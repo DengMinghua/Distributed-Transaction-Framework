@@ -25,7 +25,8 @@ enum DsRespType {
 
     UNLOCK_SUCCESS,
 
-    UPDATE_SUCCESS
+    UPDATE_SUCCESS,
+    UPDATE_FAILED
 };
 
 struct DsReadReq {

@@ -190,10 +190,44 @@ TxStatus Tx::commit() {
         return TxStatus::COMMITTED;
     }
 
+    rpc_client->clear_req_batch();
+    
+    int req_index = 0;
+
+    for (size_t i = w_index; i < w_size; i++) {
+        TxRwItem * write_item = &write_set[i];
+        RpcReq * commit_req = rpc_client->new_req(write_item->rpc_type, write_item->primary_node, (uint8_t*)write_item->local_address, write_item->local_length);
+
+        tx_rpc_req[req_index++] = commit_req;
+
+        size_t req_size = ds_forge_write_req(commit_req, DsReqType::DS_UPDATE, write_item->remote_address, write_item->remote_length, write_item->local_address);
+
+        commit_req->freeze(req_size);
+    }
+
     // rmsync() should be used to commit here
+    // rpc->send_reqs();
 
-
-
+    int resp_cnt = 0;
+    for (size_t i = w_index; i < w_size; i++) {
+        TxRwItem * write_item = &write_set[i];
+        DsRespType commit_resp_type = (DsRespType) tx_rpc_req[resp_cnt]->resp_type;
+        
+        switch(commit_resp_type) {
+                case DsRespType::UPDATE_SUCCESS:
+                        resp_cnt++;
+                        break;
+                case DsRespType::UPDATE_FAILED:
+                        tx_status = TxStatus::ABORTING;
+                        abort();
+                        break;
+                default:
+                        printf("Unknow response for commit item\n");
+        }
+    }
+    assert(resp_cnt == w_size - w_index);
+    tx_status = TxStatus::COMMITTED;
+    return tx_status;
 }
 
 void Tx::abort() {
@@ -268,7 +302,7 @@ bool Tx::validate() {
 
 }
 
-
+/*
 bool Tx::log() {
     assert(w_size >= 0);
 
@@ -290,4 +324,9 @@ bool Tx::log() {
         buf += local_length;
         req_size += local_length;
     }
+
+    rpc_client->clear_req_batch();
+
+    uint64_t temp_resp_buf;
 }
+*/
