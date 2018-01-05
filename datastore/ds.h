@@ -51,4 +51,8 @@ size_t ds_forge_write_req(RpcReq *rpc_req,
                 uint32_t length,
                 uint8_t * src_address);
 
+size_t ds_forge_read_resp(Buffer* resp_buf,
+                DsRespType type,
+                uint8_t * address,
+                uint32_t length);
 #endif

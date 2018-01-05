@@ -119,9 +119,22 @@ struct RpcReqBatch {
             c_msg[i].resp_buf.reset();
         }
         next_avaliable_c_msg_slot = 0;
+    }  
+};
+
+struct RpcRespBatch {
+    RpcCoalMsg c_msg[MAX_COAL_SIZE];
+    int num_c_msg;
+
+    inline void clear() {
+        for (int i = 0; i < MAX_COAL_SIZE; i++) {
+            c_msg[i].node_id = -1;
+            c_msg[i].num = 0;
+            c_msg[i].req_buf.reset();
+            c_msg[i].resp_buf.reset();
+        }
     }
 
-  
 };
 
 

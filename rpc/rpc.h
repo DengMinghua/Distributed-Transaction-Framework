@@ -11,7 +11,8 @@ private:
                         size_t req_len, void *arg)
                 = {NULL};
         
-        RpcReqBatch req_batch; 
+        RpcReqBatch req_batch;
+        RpcRespBatch resp_batch;
 public:
         void register_rpc_handler(int req_type,
                         size_t (*handler_) (uint8_t* resp_buf,
@@ -68,8 +69,11 @@ public:
             return req;
         }
 
-        Buffer* new_resp(int req_for_node, int req_index, uint32_t req_imm) {
-            
+        Buffer* new_resp(int resp_to_whom, int num_reqs, uint32_t req_imm) {
+            RpcCoalMsg * c_msg = &resp_batch.c_msg[resp_batch.num_c_msg++];
+            c_msg->node_id = resp_to_whom;
+            c_msg->num = num_reqs;
+            return &(c_msg->resp_buf);
         }
 
         void clear_req_batch() {

@@ -30,3 +30,13 @@ size_t ds_forge_write_req(RpcReq *rpc_req,
     memcpy((uint8_t*)val_ptr, (uint8_t*)src_address, (size_t)length);
     return sizeof(DsWriteReq) + length;
 }
+
+size_t ds_forge_read_resp(Buffer* resp_buf,
+                DsRespType type,
+                uint8_t * address,
+                uint32_t length) {
+    ((DsRespType*)resp_buf->cur_ptr)[0] = type;
+    uint8_t * val_ptr = ((uint8_t *)(resp_buf->cur_ptr) + sizeof(DsRespType));
+    memcpy(val_ptr, address, (size_t)length);
+    return sizeof(DsRespType) + length;
+}
