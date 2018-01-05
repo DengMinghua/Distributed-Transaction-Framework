@@ -86,8 +86,8 @@ struct RpcReq {
 };
 
 struct RpcCoalMsg {
-    int node_id;
-    int num;
+    uint8_t node_id;
+    uint8_t num;
     
     Buffer req_buf;
     Buffer resp_buf;
@@ -111,7 +111,8 @@ struct RpcReqBatch {
         num_reqs = 0;
         num_reqs_completed = 0;
         assert(num_reqs_completed == num_reqs);
-        for (int i = 0; i < MAX_NODES; i++) {
+        for (int i = 0; i < MAX_NODES; i++) c_msg_for_node[i] = -1;
+        for (int i = 0; i < MAX_COAL_SIZE; i++) {
             c_msg[i].node_id = -1;
             c_msg[i].num = 0;
             c_msg[i].req_buf.reset();

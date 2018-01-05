@@ -114,7 +114,7 @@ TxStatus Tx::do_read() {
         write_req->freeze(req_size);
     }
     // Not yet implemented
-    //rpc->send_reqs();
+    rpc_client->send_reqs();
     
     int resp_cnt = 0;
 
