@@ -8,9 +8,12 @@ An under-constructed distributed transaction framework based on two-sided RDMA.
 * Basic mapping class (static mapping)
 * Simple Debug mode for major functions
 
-## Todo
-* Add a Makefile and some simple tests
-* Functions to allocate temp buffer for messsage passing.
+## Ongoing
 * Callback function on server side (forge response for read request/ handle lock request(data partition, locked list)/ handle data commit(logger/ call rmsync()/ response Ack).
-* Simulator to test basic functionality in local machine.
+
+## Todo
 * RPC network part (waiting for the two sided RDMA library)
+* Functions to allocate temp buffer for messsage passing.
+* Simulator to test basic functionality in local machine.
+* Add more local tests
+
