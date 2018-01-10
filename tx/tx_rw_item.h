@@ -11,6 +11,7 @@ struct TxRwItem {
     TxRwAddress local_address;
     TxRwLength local_length;
   
+    bool local_malloc;
     TxRwAddress remote_address;
     TxRwLength remote_length;
 
@@ -22,17 +23,23 @@ struct TxRwItem {
     bool done_read;
     bool done_lock;
 
-    TxRwItem(TxRwAddress local_,
-                TxRwLength local_length_,
-                TxRwAddress remote_,
-                TxRwLength remote_length_,
+    TxRwItem(TxRwAddress remote_offset_,
+                TxRwLength len_,
+                TxRwAddress local_offset_,
                 TxRwMode mode_):
-            local_address(local_),
-            local_length(local_length_),
-            remote_address(remote_),
-            remote_length(remote_length_),
-            rw_mode(mode_) {};
-    TxRwItem(){};
+            local_length(len_),
+            remote_address(remote_offset_),
+            remote_length(len_),
+            rw_mode(mode_) {
+                    if (local_offset_ == NULL) {
+                local_address = (TxRwAddress)malloc(local_length);
+                local_malloc = true;
+        }
+        else {
+                local_malloc = false;
+        }
+            }
+    TxRwItem(){}
 
     inline void bind_primary(Mappings * mappings) {
         primary_node = mappings->get_primary(remote_address);

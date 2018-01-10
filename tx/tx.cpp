@@ -18,20 +18,19 @@ void Tx::start() {
     
 }
 
-int Tx::add_to_read_set(TxRwAddress local_address, TxRwLength local_length, 
-                TxRwAddress remote_address, TxRwLength remote_length) {
+TxRwAddress Tx::add_to_read_set(TxRwAddress remote_offset, TxRwLength len, 
+                TxRwAddress local_offset) {
     #ifdef TX_DEBUG
         printf("%s\n",__PRETTY_FUNCTION__);
-        printf("\tAdd to read set: local (%ld,%d), remote (%ld,%d)\n",
-                        (long)local_address, (int)local_length,
-                        (long)remote_address, (int)remote_length);
+        printf("\tAdd to read set: remote (%ld,%d)\n",
+                        (long)remote_offset, (int)len);
     #endif
 
     assert(tx_status == TxStatus::PROGRESSING);
-    assert(local_address != NULL && remote_address != NULL);
+    assert(remote_offset != NULL);
 
-    TxRwItem item(local_address, local_length, 
-                    remote_address, remote_length, TxRwMode::READ);
+    TxRwItem item(remote_offset, len, 
+                    local_offset, TxRwMode::READ);
 
     assert(mappings != NULL);
     item.bind_primary(mappings);
@@ -44,24 +43,22 @@ int Tx::add_to_read_set(TxRwAddress local_address, TxRwLength local_length,
     #endif
     assert(r_size < TX_MAX_READ_SET);
     read_set[r_size++] = item;
-    return item.primary();
+    return item.local_address;
 }
 
-int Tx::add_to_write_set(TxRwAddress local_address, TxRwLength local_length, 
-                TxRwAddress remote_address, TxRwLength remote_length,
-                TxRwMode mode_) {
+TxRwAddress Tx::add_to_write_set(TxRwAddress remote_offset, TxRwLength len, 
+                TxRwMode mode, TxRwAddress local_offset) {
     #ifdef TX_DEBUG
         printf("%s\n",__PRETTY_FUNCTION__);
-        printf("\tAdd to read set: local (%ld,%d), remote (%ld,%d)\n",
-                        (long)local_address, (int)local_length,
-                        (long)remote_address, (int)remote_length);
+        printf("\tAdd to write set: remote (%ld,%d)\n",
+                        (long)remote_offset, (int)len);
     #endif
 
     assert(tx_status == TxStatus::PROGRESSING);
-    assert(local_address != NULL && remote_address != NULL);
+    assert(remote_offset != NULL);
 
-    TxRwItem item(local_address, local_length,
-                    remote_address, remote_length, mode_);
+    TxRwItem item(remote_offset, len,
+                    local_offset, mode);
 
     assert(mappings != NULL);
     item.bind_primary(mappings);
@@ -74,7 +71,7 @@ int Tx::add_to_write_set(TxRwAddress local_address, TxRwLength local_length,
     #endif
     assert(w_size < TX_MAX_WRITE_SET);
     write_set[w_size++] = item;
-    return item.primary();
+    return item.local_address;
 }
 
 TxStatus Tx::do_read() {
@@ -93,7 +90,6 @@ TxStatus Tx::do_read() {
  
     for (size_t i = r_index; i < r_size; i++) {
         TxRwItem * read_item = &read_set[i];
-
         RpcReq * read_req = rpc_client->new_req(read_item->rpc_type, read_item->primary_node, 
                         (uint8_t*) read_item->local_address, read_item->local_length);
         tx_rpc_req[req_index++] = read_req;
@@ -268,6 +264,9 @@ void Tx::abort() {
 }
 
 bool Tx::validate() {
+#ifdef TX_DEBUG
+    printf("%s\n", __PRETTY_FUNCTION__);
+#endif
     rpc_client->clear_req_batch();
 
     for (size_t i = 0; i < r_index; i++) {
@@ -284,7 +283,7 @@ bool Tx::validate() {
         }
     }
 
-    //rpc->send_reqs();
+    rpc_client->send_reqs();
 
     for (size_t i = 0; i < r_index; i++) {
         TxRwItem * read_item = &read_set[i];
@@ -299,7 +298,6 @@ bool Tx::validate() {
     }
 
     return true;
-
 }
 
 /*

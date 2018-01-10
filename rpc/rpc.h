@@ -24,7 +24,7 @@ public:
         int required_recvs();
         ~Rpc() {};
 
-        RpcReq * new_req(uint8_t req_type, int resp_node, uint8_t* resp_buf,
+        RpcReq * new_req(uint8_t req_type, int to_which_node, uint8_t* resp_buf,
                         size_t max_resp_len) {
             #ifdef RPC_DEBUG
                 printf("%s\n",__PRETTY_FUNCTION__);
@@ -39,15 +39,15 @@ public:
             req_batch.num_reqs++;
             int c_msg_index = -1;
 
-            if (req_batch.c_msg_for_node[resp_node] >= 0) {
-                c_msg_index = req_batch.c_msg_for_node[resp_node];
+            if (req_batch.c_msg_for_node[to_which_node] >= 0) {
+                c_msg_index = req_batch.c_msg_for_node[to_which_node];
             }
             else {
                 c_msg_index = req_batch.next_avaliable_c_msg_slot;
-                req_batch.c_msg_for_node[resp_node] = c_msg_index;
+                req_batch.c_msg_for_node[to_which_node] = c_msg_index;
                 req_batch.next_avaliable_c_msg_slot++;
 
-                req_batch.c_msg[c_msg_index].node_id = resp_node;
+                req_batch.c_msg[c_msg_index].node_id = to_which_node;
             }
             RpcCoalMsg * cmsg = &req_batch.c_msg[c_msg_index];
             RpcMsgHdr * cmsg_hdr = (RpcMsgHdr *) ((cmsg->req_buf).cur_ptr);
@@ -60,9 +60,9 @@ public:
         
             #ifdef RPC_DEBUG
                 //printf("%s\n",__PRETTY_FUNCTION__);
-                printf("\tNew request started:\n\treq type:\t%d\n\treq buff addr:\t%ld\n\tresp node:\t%d\n\tresp buff addr:\t%ld\n\tmax resp len:\t%d\n",
+                printf("\tNew request started:\n\treq type:\t%d\n\treq buff addr:\t%ld\n\tto node:\t%d\n\tresp buff addr:\t%ld\n\tmax resp len:\t%d\n",
                                 (int)req_type, (long)req->req_buf,
-                                (int)resp_node, (long)resp_buf,
+                                (int)to_which_node, (long)resp_buf,
                                 (int)max_resp_len);
             #endif
 
@@ -103,7 +103,7 @@ public:
                         ptr += sizeof(RpcMsgHdr);
                         DsReadReq * req = (DsReadReq *) ptr;
                         printf("uint32_t req_type:\t%ld\n", (long)(req->req_type));
-                        printf("uint8_t * req_type:\t%ld\n", (long)(req->address));
+                        printf("uint8_t * req_address:\t%ld\n", (long)(req->address));
                         printf("uint32_t length:\t%ld\n", (long)(req->length));
                         ptr += sizeof(DsReadReq);
                     }

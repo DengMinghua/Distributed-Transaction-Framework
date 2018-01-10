@@ -45,11 +45,10 @@ public:
     }
     void start();
     
-    int add_to_write_set(TxRwAddress local_addr, TxRwLength local_len, 
-                    TxRwAddress remote_addr, TxRwLength remote_len,
-                    TxRwMode mode);
-    int add_to_read_set(TxRwAddress local_addr, TxRwLength local_len,
-                    TxRwAddress remote_addr, TxRwLength remote_len);
+    TxRwAddress add_to_write_set(TxRwAddress remote_offset, TxRwLength len, 
+                    TxRwMode mode, TxRwAddress local_offset = NULL);
+    TxRwAddress add_to_read_set(TxRwAddress remote_offset, TxRwLength len,
+                    TxRwAddress local_offset = NULL);
     
     TxStatus do_read();
 
