@@ -22,7 +22,6 @@ public:
                         void * arg);
 
         int required_recvs();
-        ~Rpc();
 
         RpcReq * new_req(uint8_t req_type, int to_which_node, uint8_t* resp_buf,
                         size_t max_resp_len);

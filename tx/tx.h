@@ -32,11 +32,11 @@ private:
 
     uint8_t * local_log_buffer;
 public:
-    Tx(Mappings * mappings_):
-            mappings(mappings_), tx_status(TxStatus::COMMITTED),
+    Tx(Mappings * mappings_, Rpc * rpc_client_):
+            mappings(mappings_), rpc_client(rpc_client_),
+            tx_status(TxStatus::COMMITTED),
             r_size(0), r_index(0),
-            w_size(0), w_index(0) {
-            rpc_client = new Rpc();};
+            w_size(0), w_index(0) {};
     
     ~Tx() {
             assert(tx_status == TxStatus::COMMITTED ||
