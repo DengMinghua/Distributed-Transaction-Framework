@@ -13,7 +13,8 @@ private:
                         const uint8_t* req_buf,
                         size_t req_len, void *arg)
                 = {NULL};
-        
+        void * rpc_handler_arg[RPC_TYPE_NUM] = {NULL};
+
         RpcReqBatch req_batch;
         RpcRespBatch resp_batch;
         
@@ -33,8 +34,8 @@ public:
                                         const uint8_t* req_buf,
                                         size_t req_len, void *arg),
                         void * arg);
-        void * rpc_listener();
-        static void* rpc_listener_helper(void*);
+        void * local_sim_rpc_listener();
+        static void* local_sim_rpc_listener_helper(void*);
 
         RpcReq * new_req(uint8_t req_type, int to_which_node, uint8_t* resp_buf,
                         size_t max_resp_len);
@@ -46,6 +47,8 @@ public:
         // Because of the RDMA lib has not yet been finished,
         // This function is currently used only to print reqs for debugging
         void send_reqs();
+
+
 };
 
 #endif

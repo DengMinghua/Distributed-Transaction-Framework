@@ -1,35 +1,80 @@
 #include "rpc.h"
 
-void* Rpc::rpc_listener() {
-    printf("server up\n");
-    pthread_barrier_wait(&barrier);
-    while (status == ONLINE) {
-        pthread_mutex_lock(&mtx);
-        pthread_cond_wait(&cond, &mtx);
-        printf("server sensed\n");
-        pthread_mutex_unlock(&mtx);
-    }
-    status = OFFLINE;
+void* Rpc::local_sim_rpc_listener() {
+        printf("%s\n", __PRETTY_FUNCTION__);
+        printf("Local Simlulation Server UP!\n");
+        pthread_barrier_wait(&barrier);
+        while (status == ONLINE) {
+                pthread_mutex_lock(&mtx);
+                pthread_cond_wait(&cond, &mtx);
+                if (status == SHUTING_DOWN) {
+                        status = OFFLINE;
+                        pthread_mutex_unlock(&mtx);
+                        break;
+                }
+                RpcReqBatch * batch = &req_batch;
+                for (int i = 0; i < MAX_NODES; i++) {
+                        if (batch->c_msg_for_node[i] != -1) {
+                                int index = batch->c_msg_for_node[i];
+                                RpcCoalMsg * msg = &((batch->c_msg)[index]);
+                                printf("Recieved Message for node %d\n", i);
+                                uint8_t  * ptr = (msg->req_buf).head_ptr;
+                                for (int j = 0; j < msg->num; j++) {
+                                        RpcMsgHdr* hdr = (RpcMsgHdr*) ptr;
+                                        int rpc_type = hdr->msg_type;
+                                        size_t rpc_size = hdr->size;
+                                        ptr += sizeof(RpcMsgHdr);
+                                        DsReadReq * req = (DsReadReq *) ptr;
+                                        rpc_handler[rpc_type]((uint8_t*) 0, (uint8_t*)&rpc_type, (uint8_t*)req, sizeof(DsReadReq), rpc_handler_arg[rpc_type]);
+                                        /*
+                                           printf("uint32_t req_type:\t%ld\n", (long)(req->req_type));
+                                           printf("uint8_t * req_address:\t%ld\n", (long)(req->address));
+                                           printf("uint32_t length:\t%ld\n", (long)(req->length));
+                                         */
+                                        ptr += sizeof(DsReadReq);
+                                }
+                        }
+                }
+
+                printf("server sensed\n");
+                pthread_barrier_wait(&barrier);
+                pthread_mutex_unlock(&mtx);
+        }
+        status = OFFLINE;
 }
 
-void * Rpc::rpc_listener_helper(void* This) {
-    return ((Rpc *)This)->rpc_listener();
+void * Rpc::local_sim_rpc_listener_helper(void* This) {
+        return ((Rpc *)This)->local_sim_rpc_listener();
 }
 
 void Rpc::online() {
-    status = ONLINE;
-    pthread_barrier_init(&barrier, NULL, 2);
-    int ret = pthread_create(&server_tid, NULL, rpc_listener_helper, this);
-    pthread_barrier_wait(&barrier);
-    pthread_barrier_destroy(&barrier);
+#ifdef LOCAL_SIM
+        status = ONLINE;
+        pthread_barrier_init(&barrier, NULL, 2);
+        int ret = pthread_create(&server_tid, NULL, local_sim_rpc_listener_helper, this);
+        pthread_barrier_wait(&barrier);
+        pthread_barrier_destroy(&barrier);
+#endif
 }
 
 void Rpc::offline() {
-    pthread_mutex_lock(&mtx);
-    status = SHUTING_DOWN;
-    pthread_cond_signal(&cond);
-    pthread_mutex_unlock(&mtx);
-    int ret = pthread_join(server_tid, NULL);
+#ifdef LOCAL_SIM
+        pthread_mutex_lock(&mtx);
+        status = SHUTING_DOWN;
+        pthread_cond_signal(&cond);
+        pthread_mutex_unlock(&mtx);
+        int ret = pthread_join(server_tid, NULL);
+#endif
+}
+
+void Rpc::register_rpc_handler(int req_type,
+                size_t(*handler_) (uint8_t* resp_buf,
+                        uint8_t *resp_type,
+                        const uint8_t* req_buf,
+                        size_t req_len, void *arg),
+                void *arg) {
+        rpc_handler[req_type] = handler_;
+        rpc_handler_arg[req_type] = arg;
 }
 
 RpcReq * Rpc::new_req(uint8_t req_type, int to_which_node, uint8_t* resp_buf,
@@ -73,10 +118,6 @@ RpcReq * Rpc::new_req(uint8_t req_type, int to_which_node, uint8_t* resp_buf,
                         (int)to_which_node, (long)resp_buf,
                         (int)max_resp_len);
 #endif
-    pthread_mutex_lock(&mtx);
-    pthread_cond_signal(&cond);
-    pthread_mutex_unlock(&mtx);
-    sleep(10);
         return req;
 }
 
@@ -123,6 +164,13 @@ void Rpc::send_reqs() {
                         printf("-------------------MSG BUF END-------------------\n");
                 }
         }
+        pthread_barrier_init(&barrier, NULL, 2);
+        pthread_mutex_lock(&mtx);
+        pthread_cond_signal(&cond);
+        pthread_mutex_unlock(&mtx);
+        pthread_barrier_wait(&barrier);
+        pthread_barrier_destroy(&barrier);
+        
 #endif
 }
 

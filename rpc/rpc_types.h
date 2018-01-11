@@ -1,11 +1,14 @@
 #ifndef RPC_TYPES_H_
 #define RPC_TYPES_H_
 
-#define RPC_TYPE_NUM 2
+#define RPC_TYPE_NUM 5
 
 enum RPCType {
-    RPC_LOCK_REQ,
-    RPC_LOG_REQ
+    RPC_READ,
+    RPC_READNLOCK,
+    RPC_WRITE,
+    RPC_COMMIT,
+    RPC_UNLOCK
 };
 
 #endif

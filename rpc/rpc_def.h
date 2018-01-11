@@ -2,6 +2,7 @@
 #define RPC_DEF_H_
 
 #define RPC_DEBUG 1
+#define LOCAL_SIM 1
 
 #define MAX_NODES 8
 
