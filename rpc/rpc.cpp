@@ -1,5 +1,37 @@
 #include "rpc.h"
 
+void* Rpc::rpc_listener() {
+    printf("server up\n");
+    pthread_barrier_wait(&barrier);
+    while (status == ONLINE) {
+        pthread_mutex_lock(&mtx);
+        pthread_cond_wait(&cond, &mtx);
+        printf("server sensed\n");
+        pthread_mutex_unlock(&mtx);
+    }
+    status = OFFLINE;
+}
+
+void * Rpc::rpc_listener_helper(void* This) {
+    return ((Rpc *)This)->rpc_listener();
+}
+
+void Rpc::online() {
+    status = ONLINE;
+    pthread_barrier_init(&barrier, NULL, 2);
+    int ret = pthread_create(&server_tid, NULL, rpc_listener_helper, this);
+    pthread_barrier_wait(&barrier);
+    pthread_barrier_destroy(&barrier);
+}
+
+void Rpc::offline() {
+    pthread_mutex_lock(&mtx);
+    status = SHUTING_DOWN;
+    pthread_cond_signal(&cond);
+    pthread_mutex_unlock(&mtx);
+    int ret = pthread_join(server_tid, NULL);
+}
+
 RpcReq * Rpc::new_req(uint8_t req_type, int to_which_node, uint8_t* resp_buf,
                 size_t max_resp_len) {
 #ifdef RPC_DEBUG
@@ -41,7 +73,10 @@ RpcReq * Rpc::new_req(uint8_t req_type, int to_which_node, uint8_t* resp_buf,
                         (int)to_which_node, (long)resp_buf,
                         (int)max_resp_len);
 #endif
-
+    pthread_mutex_lock(&mtx);
+    pthread_cond_signal(&cond);
+    pthread_mutex_unlock(&mtx);
+    sleep(10);
         return req;
 }
 

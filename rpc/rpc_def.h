@@ -21,6 +21,12 @@
 //typedef uint8_t ReqBuf;
 //typedef uint8_t MsgType;
 
+enum RpcServerStatus {
+    OFFLINE,
+    ONLINE,
+    SHUTING_DOWN
+};
+
 struct Buffer {
     uint8_t * head_ptr;
     size_t buf_size;
