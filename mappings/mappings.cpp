@@ -17,14 +17,21 @@ Mappings::Mappings(int node_id_, int tot_num_nodes_, int tot_num_primarys_,
                     
 }
 
+Mappings::~Mappings() {
+    for (int i = 0 ; i < tot_num_nodes; i++){
+        if (local_sim_regions_ptr[i] != NULL)
+                free(local_sim_regions_ptr[i]);
+    }
+}
 int Mappings::get_primary(void * offset) {
     assert((long)offset < memory_region_size * tot_num_primarys);
     return (((long)offset / memory_region_size) * num_replicas) % tot_num_nodes;
 }
 
 int Mappings::get_backups_from_primary(int primary, int back_i) {
-    assert(primary >= 0 && primary < tot_num_primarys);
-    assert(back_i >= 0 && back_i < num_backups);
+    printf("primary!!!%d\n", primary);
+    //assert(primary >= 0 && primary < tot_num_primarys);
+    //assert(back_i >= 0 && back_i < num_backups);
 
     return ((primary + back_i + 1) % tot_num_nodes);
 }

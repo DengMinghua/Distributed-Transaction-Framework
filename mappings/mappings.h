@@ -9,6 +9,7 @@
 #include <cstdlib>
 #include <sys/mman.h>
 #include <fcntl.h>
+#include <cstring>
 
 #define DEFAULT_REGION_SIZE (1024 * 4096)
 #define MAPPING_DEBUG 1
@@ -17,39 +18,59 @@
 #define MAX_END_POINT_SIZE 64
 
 class Mappings {
-private:
-    uint8_t *region_ptr;
+        private:
+                uint8_t *region_ptr;
 
-    uint8_t *local_sim_regions_ptr[MAX_LOCAL_SIM_NODES];
-    char* end_points[MAX_END_POINT_SIZE];
-    int node_id;
+                uint8_t *local_sim_regions_ptr[MAX_LOCAL_SIM_NODES];
+                char* end_points[MAX_END_POINT_SIZE];
+                int node_id;
 
-    int tot_num_nodes;
-    int tot_num_primarys;
+                int tot_num_nodes;
+                int tot_num_primarys;
 
-    int num_backups;
-    int num_replicas;
+                int num_backups;
+                int num_replicas;
 
-    long memory_region_size;
+                long memory_region_size;
 
-    size_t file_size(int fd);
+                size_t file_size(int fd);
 
-    void * setup_region_on_node(int node_id, const char * file = "");
-public:
-    Mappings(int node_id,
-        int tot_num_nodes_,
-        int tot_num_primarys_,
-        int num_backups_,
-        long memory_region_size_ = DEFAULT_REGION_SIZE
-        );
+                void * setup_region_on_node(int node_id, const char * file = "");
+        public:
+                Mappings(int node_id,
+                                int tot_num_nodes_,
+                                int tot_num_primarys_,
+                                int num_backups_,
+                                long memory_region_size_ = DEFAULT_REGION_SIZE
+                        );
 
-    int get_primary(void* address);
+                ~Mappings();
 
-    int get_backups_from_primary(int primary, int back_i);
+                int get_primary(void* address);
 
-    int get_backups(void* address, int back_i);
+                int get_backups_from_primary(int primary, int back_i);
 
-    int get_num_backups();
+                int get_backups(void* address, int back_i);
+
+                int get_num_backups();
+
+                inline uint8_t* local_sim_get_value(long address) {
+#ifndef LOCAL_SIMULATION
+                        assert(0);
+#endif
+                        uint8_t* ptr =  local_sim_regions_ptr[get_primary((void*)address)];
+                        ptr += address / memory_region_size;
+                        return ptr;
+                }
+
+                inline void local_sim_put_value(long address, uint8_t* value, size_t len) {
+#ifndef LOCAL_SIMULATION
+                        assert(0);
+#endif
+                        uint8_t* ptr =  local_sim_regions_ptr[get_primary((void*)address)];
+                        ptr += address / memory_region_size;
+                        memcpy(ptr, value, len);
+                }
 };
 
 #endif
