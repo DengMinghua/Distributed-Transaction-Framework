@@ -14,18 +14,16 @@ enum TxStatus {
 
 enum TxRwMode {
     READ,
-    UPDATE,
-    INSERT,
-    DELETE
+    UPDATE
 };
 
-enum TxRpcType {
+/*enum TxRpcType {
     RPC_READ,
     RPC_READNLOCK,
     RPC_WRITE,
     RPC_COMMIT,
     RPC_UNLOCK
-};
+};*/
 
 typedef uint8_t* TxRwAddress;
 typedef size_t TxRwLength;

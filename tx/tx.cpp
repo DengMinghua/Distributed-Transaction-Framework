@@ -11,7 +11,13 @@ void Tx::start() {
 
     r_index = 0;
     w_index = 0;
-    
+
+    w_size = 0;
+    r_size = 0;
+  
+    req_index = 0;
+
+    rpc_client->register_rpc_handler(0,(size_t (*)(uint8_t*, uint8_t*, const uint8_t*, size_t, void*))&Tx::handler_for_read,this);
 #ifdef TX_DEBUG
     printf("%s\n",__PRETTY_FUNCTION__);
 #endif

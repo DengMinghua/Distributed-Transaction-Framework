@@ -59,6 +59,11 @@ public:
     void abort();
 
     bool log();
+
+    static size_t handler_for_read(uint8_t * resp_buf,
+                    uint8_t * resp_type,
+                    const uint8_t * req_buf,
+                    size_t req_len, void *arg);
 };
 
 #endif
