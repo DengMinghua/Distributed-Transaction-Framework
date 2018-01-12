@@ -69,9 +69,13 @@ struct Buffer {
 struct RpcMsgHdr {
     uint8_t msg_type;
     uint16_t size;
+    uint16_t rpc_seq;
 };
 
 struct RpcReq {
+
+    uint16_t rpc_seq;
+
     uint8_t * req_buf;
     size_t req_len;
 

@@ -29,30 +29,37 @@ enum DsRespType {
 };
 
 struct DsReadReq {
-    uint32_t req_type;
+    DsReqType req_type;
     uint8_t * address;
-    uint32_t length;
+    size_t length;
+};
+
+struct DsReadResp {
+    DsRespType resp_type;
+    uint8_t * local_address;
+    size_t length;
 };
 
 struct DsWriteReq {
-    uint32_t req_type;
+    DsReqType req_type;
     uint8_t * address;
-    uint32_t length;
+    size_t length;
 };
 
 size_t ds_forge_read_req(RpcReq *rpc_req,
                 DsReqType type,
                 uint8_t * address,
-                uint32_t length);
+                size_t length);
 
 size_t ds_forge_write_req(RpcReq *rpc_req,
                 DsReqType type,
                 uint8_t * des_address,
-                uint32_t length,
+                size_t length,
                 uint8_t * src_address);
 
 size_t ds_forge_read_resp(Buffer* resp_buf,
                 DsRespType type,
-                uint8_t * address,
-                uint32_t length);
+                uint8_t * local_address,
+                uint8_t * remote_address,
+                size_t length);
 #endif

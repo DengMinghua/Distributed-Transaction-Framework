@@ -19,13 +19,14 @@ void* Rpc::local_sim_rpc_listener() {
                                 RpcCoalMsg * msg = &((batch->c_msg)[index]);
                                 printf("Recieved Message for node %d\n", i);
                                 uint8_t  * ptr = (msg->req_buf).head_ptr;
+                                Buffer * buffer = new_resp(i, msg->num, 0);
                                 for (int j = 0; j < msg->num; j++) {
                                         RpcMsgHdr* hdr = (RpcMsgHdr*) ptr;
                                         int rpc_type = hdr->msg_type;
                                         size_t rpc_size = hdr->size;
                                         ptr += sizeof(RpcMsgHdr);
                                         DsReadReq * req = (DsReadReq *) ptr;
-                                        rpc_handler[rpc_type]((uint8_t*) 0, (uint8_t*)&rpc_type, (uint8_t*)req, sizeof(DsReadReq), rpc_handler_arg[rpc_type]);
+                                        rpc_handler[rpc_type]((uint8_t*) buffer, (uint8_t*)&rpc_type, (uint8_t*)req, sizeof(DsReadReq), rpc_handler_arg[rpc_type]);
                                         /*
                                            printf("uint32_t req_type:\t%ld\n", (long)(req->req_type));
                                            printf("uint8_t * req_address:\t%ld\n", (long)(req->address));
@@ -86,7 +87,7 @@ RpcReq * Rpc::new_req(uint8_t req_type, int to_which_node, uint8_t* resp_buf,
         int req_index = req_batch.num_reqs;
 
         RpcReq * req = &req_batch.reqs[req_index];
-
+    
         req->resp_buf = resp_buf;
         req->max_resp_len = max_resp_len;
         req_batch.num_reqs++;
@@ -105,6 +106,7 @@ RpcReq * Rpc::new_req(uint8_t req_type, int to_which_node, uint8_t* resp_buf,
         RpcCoalMsg * cmsg = &req_batch.c_msg[c_msg_index];
         RpcMsgHdr * cmsg_hdr = (RpcMsgHdr *) ((cmsg->req_buf).cur_ptr);
         cmsg_hdr->msg_type = req_type;
+        cmsg_hdr->rpc_seq = rpc_seq++;
         cmsg->req_buf.cur_ptr += sizeof(RpcMsgHdr);
         req->req_buf = cmsg->req_buf.cur_ptr;
         req->cmsg_hdr = cmsg_hdr;
@@ -112,7 +114,7 @@ RpcReq * Rpc::new_req(uint8_t req_type, int to_which_node, uint8_t* resp_buf,
         (cmsg->num)++;
 
 #ifdef RPC_DEBUG
-        //printf("%s\n",__PRETTY_FUNCTION__);
+        // printf("%s\n",__PRETTY_FUNCTION__);
         printf("\tNew request started:\n\treq type:\t%d\n\treq buff addr:\t%ld\n\tto node:\t%d\n\tresp buff addr:\t%ld\n\tmax resp len:\t%d\n",
                         (int)req_type, (long)req->req_buf,
                         (int)to_which_node, (long)resp_buf,
@@ -164,13 +166,47 @@ void Rpc::send_reqs() {
                         printf("-------------------MSG BUF END-------------------\n");
                 }
         }
+#ifdef LOCAL_SIM
         pthread_barrier_init(&barrier, NULL, 2);
         pthread_mutex_lock(&mtx);
         pthread_cond_signal(&cond);
         pthread_mutex_unlock(&mtx);
         pthread_barrier_wait(&barrier);
         pthread_barrier_destroy(&barrier);
-        
+#endif
+
 #endif
 }
 
+void Rpc::send_resp() {
+#ifdef LOCAL_SIM
+        pthread_mutex_lock(&recv_mtx);
+        pthread_cond_signal(&recv_cond);
+        pthread_mutex_unlock(&mtx);
+#endif
+}
+
+void Rpc::recv_resp() {
+#ifdef LOCAL_SIM
+        pthread_mutex_lock(&recv_mtx);
+        pthread_cond_wait(&recv_cond, &recv_mtx);
+        for (int i = 0; i < resp_batch.num_c_msg; i++) {
+                RpcCoalMsg * c_msg = &resp_batch.c_msg[i];
+                Buffer * buf = &c_msg->resp_buf;
+                uint8_t* ptr = buf->cur_ptr;
+                for (int j = 0; j < c_msg->num; j++) {
+                        DsReadResp * resp_head = (DsReadResp *)ptr;
+                        uint8_t* local_address = resp_head->local_address;
+                        DsRespType type = resp_head->resp_type;
+                        size_t length = resp_head->length;
+                        if (type == READ_SUCCESS)
+                                for (int k = 0; k < req_batch.num_reqs; k++) 
+                                        if (req_batch.reqs[i].req_resp_buf == local_address) 
+                                                req_batch.reqs[i].resp_type = READ_SUCCESS;
+                        memcpy(local_address, ptr + sizeof(DsReadResp), length);
+                        ptr += sizeof(DsReadResp) + length;
+                }
+        }
+        pthread_mutex_unlock(&mtx);
+#endif
+}

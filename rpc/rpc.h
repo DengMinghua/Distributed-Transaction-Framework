@@ -25,6 +25,11 @@ private:
         pthread_mutex_t mtx = PTHREAD_MUTEX_INITIALIZER;
         pthread_barrier_t barrier;
 
+        pthread_cond_t recv_cond = PTHREAD_COND_INITIALIZER;
+        pthread_mutex_t recv_mtx = PTHREAD_MUTEX_INITIALIZER;
+
+        static uint16_t rpc_seq = 0;
+
 public:
         void online();
         void offline();
@@ -45,8 +50,10 @@ public:
         void clear_req_batch();
         
         // Because of the RDMA lib has not yet been finished,
-        // This function is currently used only to print reqs for debugging
+        // This function is currently used only for local simulation
         void send_reqs();
+        void send_resp();
+        void recv_resp();
 
 
 };
