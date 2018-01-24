@@ -28,21 +28,23 @@ private:
         pthread_cond_t recv_cond = PTHREAD_COND_INITIALIZER;
         pthread_mutex_t recv_mtx = PTHREAD_MUTEX_INITIALIZER;
 
-        static uint16_t rpc_seq = 0;
+        static uint16_t rpc_seq;
 
 public:
         void online();
         void offline();
+
         void register_rpc_handler(int req_type,
                         size_t (*handler_) (uint8_t* resp_buf,
                                         uint8_t* resp_type,
                                         const uint8_t* req_buf,
                                         size_t req_len, void *arg),
                         void * arg);
+        
         void * local_sim_rpc_listener();
         static void* local_sim_rpc_listener_helper(void*);
 
-        RpcReq * new_req(uint8_t req_type, int to_which_node, uint8_t* resp_buf,
+        RpcReq * new_req(uint8_t req_type, int to_which_node, void* resp_buf,
                         size_t max_resp_len);
 
         Buffer* new_resp(int resp_to_whom, int num_reqs, uint32_t req_imm);

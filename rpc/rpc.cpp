@@ -78,7 +78,7 @@ void Rpc::register_rpc_handler(int req_type,
         rpc_handler_arg[req_type] = arg;
 }
 
-RpcReq * Rpc::new_req(uint8_t req_type, int to_which_node, uint8_t* resp_buf,
+RpcReq * Rpc::new_req(uint8_t req_type, int to_which_node, void* resp_buf,
                 size_t max_resp_len) {
 #ifdef RPC_DEBUG
         printf("%s\n",__PRETTY_FUNCTION__);
@@ -88,7 +88,7 @@ RpcReq * Rpc::new_req(uint8_t req_type, int to_which_node, uint8_t* resp_buf,
 
         RpcReq * req = &req_batch.reqs[req_index];
     
-        req->resp_buf = resp_buf;
+        req->resp_buf = (uint8_t*)resp_buf;
         req->max_resp_len = max_resp_len;
         req_batch.num_reqs++;
         int c_msg_index = -1;
@@ -106,7 +106,7 @@ RpcReq * Rpc::new_req(uint8_t req_type, int to_which_node, uint8_t* resp_buf,
         RpcCoalMsg * cmsg = &req_batch.c_msg[c_msg_index];
         RpcMsgHdr * cmsg_hdr = (RpcMsgHdr *) ((cmsg->req_buf).cur_ptr);
         cmsg_hdr->msg_type = req_type;
-        cmsg_hdr->rpc_seq = rpc_seq++;
+        //cmsg_hdr->rpc_seq = rpc_seq++;
         cmsg->req_buf.cur_ptr += sizeof(RpcMsgHdr);
         req->req_buf = cmsg->req_buf.cur_ptr;
         req->cmsg_hdr = cmsg_hdr;
@@ -125,10 +125,12 @@ RpcReq * Rpc::new_req(uint8_t req_type, int to_which_node, uint8_t* resp_buf,
 
 
 Buffer* Rpc::new_resp(int resp_to_whom, int num_reqs, uint32_t req_imm) {
+/*
         RpcCoalMsg * c_msg = &resp_batch.c_msg[resp_batch.num_c_msg++];
         c_msg->node_id = resp_to_whom;
         c_msg->num = num_reqs;
         return &(c_msg->resp_buf);
+*/
 }
 
 
@@ -187,6 +189,7 @@ void Rpc::send_resp() {
 }
 
 void Rpc::recv_resp() {
+/*
 #ifdef LOCAL_SIM
         pthread_mutex_lock(&recv_mtx);
         pthread_cond_wait(&recv_cond, &recv_mtx);
@@ -209,4 +212,5 @@ void Rpc::recv_resp() {
         }
         pthread_mutex_unlock(&mtx);
 #endif
+*/
 }

@@ -9,12 +9,12 @@
 struct TxRwItem {
         TxRwMode rw_mode;
 
-        TxRwAddress local_address;
-        TxRwLength local_length;
+        void* local_address;
+        size_t local_length;
 
         bool local_malloc;
-        TxRwAddress remote_address;
-        TxRwLength remote_length;
+        void* remote_address;
+        size_t remote_length;
 
         RPCType rpc_type;
 
@@ -24,9 +24,9 @@ struct TxRwItem {
         bool done_read;
         bool done_lock;
 
-        TxRwItem(TxRwAddress remote_offset_,
-                        TxRwLength len_,
-                        TxRwAddress local_offset_,
+        TxRwItem(void* remote_offset_,
+                        size_t len_,
+                        void* local_offset_,
                         TxRwMode mode_):
                 local_length(len_),
                 remote_address(remote_offset_),
@@ -37,7 +37,7 @@ struct TxRwItem {
                         if (mode_ == UPDATE) rpc_type = RPCType::RPC_READNLOCK;
 
                         if (local_offset_ == NULL) {
-                                local_address = (TxRwAddress)malloc(local_length);
+                                local_address = (void*)malloc(local_length);
                                 local_malloc = true;
                         }
                         else {

@@ -25,7 +25,7 @@ enum TxRwMode {
     RPC_UNLOCK
 };*/
 
-typedef uint8_t* TxRwAddress;
-typedef size_t TxRwLength;
+//typedef uint8_t* TxRwAddress;
+//typedef size_t TxRwLength;
 
 #endif

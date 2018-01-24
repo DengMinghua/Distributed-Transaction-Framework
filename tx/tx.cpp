@@ -24,8 +24,8 @@ void Tx::start() {
 
 }
 
-TxRwAddress Tx::add_to_read_set(TxRwAddress remote_offset, TxRwLength len, 
-                TxRwAddress local_offset) {
+void* Tx::add_to_read_set(void* remote_offset, size_t len, 
+                void* local_offset) {
 #ifdef TX_DEBUG
         printf("%s\n",__PRETTY_FUNCTION__);
         printf("\tAdd to read set: remote (%ld,%d)\n",
@@ -52,8 +52,8 @@ TxRwAddress Tx::add_to_read_set(TxRwAddress remote_offset, TxRwLength len,
         return item.local_address;
 }
 
-TxRwAddress Tx::add_to_write_set(TxRwAddress remote_offset, TxRwLength len, 
-                TxRwMode mode, TxRwAddress local_offset) {
+void* Tx::add_to_write_set(void* remote_offset, size_t len, 
+                TxRwMode mode, void* local_offset) {
 #ifdef TX_DEBUG
         printf("%s\n",__PRETTY_FUNCTION__);
         printf("\tAdd to write set: remote (%ld,%d)\n",
@@ -97,10 +97,10 @@ TxStatus Tx::do_read() {
         for (size_t i = r_index; i < r_size; i++) {
                 TxRwItem * read_item = &read_set[i];
                 RpcReq * read_req = rpc_client->new_req(read_item->rpc_type, read_item->primary_node, 
-                                (uint8_t*) read_item->local_address, read_item->local_length);
+                                 read_item->local_address, read_item->local_length);
                 tx_rpc_req[req_index++] = read_req;
 
-                size_t req_size = ds_forge_read_req(read_req, DsReqType::DS_READ, (uint8_t *)read_item->remote_address, read_item->remote_length);
+                size_t req_size = ds_forge_read_req(read_req, DsReqType::DS_READ, read_item->remote_address, read_item->remote_length);
                 read_req->freeze(req_size);
         }
 
@@ -108,10 +108,10 @@ TxStatus Tx::do_read() {
                 TxRwItem * write_item = &write_set[i];
 
                 RpcReq * write_req = rpc_client->new_req(write_item->rpc_type, write_item->primary_node, 
-                                (uint8_t*)write_item->local_address, write_item->local_length);
+                                write_item->local_address, write_item->local_length);
                 tx_rpc_req[req_index] = write_req;
 
-                size_t req_size = ds_forge_read_req(write_req, DsReqType::DS_READNLOCK, (uint8_t*) write_item->remote_address, write_item->remote_length);
+                size_t req_size = ds_forge_read_req(write_req, DsReqType::DS_READNLOCK, write_item->remote_address, write_item->remote_length);
 
                 write_req->freeze(req_size);
         }
@@ -198,7 +198,7 @@ TxStatus Tx::commit() {
 
         for (size_t i = w_index; i < w_size; i++) {
                 TxRwItem * write_item = &write_set[i];
-                RpcReq * commit_req = rpc_client->new_req(write_item->rpc_type, write_item->primary_node, (uint8_t*)write_item->local_address, write_item->local_length);
+                RpcReq * commit_req = rpc_client->new_req(write_item->rpc_type, write_item->primary_node, write_item->local_address, write_item->local_length);
 
                 tx_rpc_req[req_index++] = commit_req;
 
@@ -246,7 +246,7 @@ void Tx::abort() {
                 TxRwItem * write_item = &write_set[i];
                 if (!(write_item->done_lock)) continue;
                 RpcReq * unlock_req = rpc_client->new_req(write_item->rpc_type,
-                                write_item->primary_node, (uint8_t *)write_item->local_address, write_item->local_length);
+                                write_item->primary_node, write_item->local_address, write_item->local_length);
 
                 tx_rpc_req[i] = unlock_req;
                 r_cnt++;
@@ -281,10 +281,10 @@ bool Tx::validate() {
                 if (read_item->done_read) {
 
                         RpcReq * read_req = rpc_client->new_req(read_item->rpc_type, 
-                                        read_item->primary_node, (uint8_t*)read_item->local_address, read_item->local_length);
+                                        read_item->primary_node, read_item->local_address, read_item->local_length);
                         tx_rpc_req[i] = read_req;
 
-                        size_t req_size = ds_forge_read_req(read_req, DsReqType::DS_READ, (uint8_t*)read_item->remote_address, read_item->remote_length);
+                        size_t req_size = ds_forge_read_req(read_req, DsReqType::DS_READ, read_item->remote_address, read_item->remote_length);
                         read_req->freeze(req_size);
                 }
         }

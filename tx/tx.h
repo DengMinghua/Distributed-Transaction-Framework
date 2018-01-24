@@ -30,7 +30,6 @@ private:
     RpcReq *tx_rpc_req[MAX_TX_RPC];
     size_t req_index;
 
-    uint8_t * local_log_buffer;
 public:
     Tx(Mappings * mappings_, Rpc * rpc_client_):
             mappings(mappings_), rpc_client(rpc_client_),
@@ -45,10 +44,10 @@ public:
     }
     void start();
     
-    TxRwAddress add_to_write_set(TxRwAddress remote_offset, TxRwLength len, 
-                    TxRwMode mode, TxRwAddress local_offset = NULL);
-    TxRwAddress add_to_read_set(TxRwAddress remote_offset, TxRwLength len,
-                    TxRwAddress local_offset = NULL);
+    void* add_to_write_set(void* remote_offset, size_t len, 
+                    TxRwMode mode, void* local_offset = NULL);
+    void* add_to_read_set(void* remote_offset, size_t len,
+                    void* local_offset = NULL);
     
     TxStatus do_read();
 
