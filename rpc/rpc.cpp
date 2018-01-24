@@ -104,12 +104,12 @@ RpcReq * Rpc::new_req(uint8_t req_type, int to_which_node, void* resp_buf,
                 req_batch.c_msg[c_msg_index].node_id = to_which_node;
         }
         RpcCoalMsg * cmsg = &req_batch.c_msg[c_msg_index];
-        RpcMsgHdr * cmsg_hdr = (RpcMsgHdr *) ((cmsg->req_buf).cur_ptr);
-        cmsg_hdr->msg_type = req_type;
-        //cmsg_hdr->rpc_seq = rpc_seq++;
+        RpcMsgHdr * msg_hdr = (RpcMsgHdr *) ((cmsg->req_buf).cur_ptr);
+        msg_hdr->msg_type = req_type;
+        msg_hdr->rpc_seq = rpc_seq++;
         cmsg->req_buf.cur_ptr += sizeof(RpcMsgHdr);
         req->req_buf = cmsg->req_buf.cur_ptr;
-        req->cmsg_hdr = cmsg_hdr;
+        req->msg_hdr = msg_hdr;
         req->cmsg_buf = &(cmsg->req_buf);
         (cmsg->num)++;
 
@@ -150,20 +150,22 @@ void Rpc::send_reqs() {
                         RpcCoalMsg * msg = &((batch->c_msg)[index]);
                         printf("Request for node %d\n", i);
                         printf("---------------MSG BUF PRETTY PRINT---------------\n");
-                        printf("uint_8 node_id: \t%d\n", msg->node_id);
-                        printf("uint_8 num: \t%d\n", msg->num);
-                        printf("Buffer req_buf:\n");
+                        printf("to node: \t%d\n", msg->node_id);
+                        printf("num of req: \t%d\n", msg->num);
+                        printf("req buf:\n");
                         uint8_t  * ptr = (msg->req_buf).head_ptr;
                         for (int j = 0; j < msg->num; j++) {
                                 RpcMsgHdr* hdr = (RpcMsgHdr*) ptr;
-                                printf("uint8_t msg_type:\t%d\n", hdr->msg_type);
-                                printf("uint16_t msg_size:\t%d\n", hdr->size);
+                                printf("\tmsg type:\t%d\n", hdr->msg_type);
+                                printf("\tmsg size:\t%d\n", hdr->size);
+                                printf("\trpc seq:\t%d\n", hdr->rpc_seq);
                                 ptr += sizeof(RpcMsgHdr);
                                 DsReadReq * req = (DsReadReq *) ptr;
-                                printf("uint32_t req_type:\t%ld\n", (long)(req->req_type));
-                                printf("uint8_t * req_address:\t%ld\n", (long)(req->address));
-                                printf("uint32_t length:\t%ld\n", (long)(req->length));
+                                printf("\tds req type:\t%ld\n", (long)(req->req_type));
+                                printf("\tds req address:\t%ld\n", (long)(req->address));
+                                printf("\tds req length:\t%ld\n", (long)(req->length));
                                 ptr += sizeof(DsReadReq);
+                                printf("END REQ\n");
                         }
                         printf("-------------------MSG BUF END-------------------\n");
                 }

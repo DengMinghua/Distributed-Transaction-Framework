@@ -6,6 +6,7 @@
 #include <pthread.h>
 #include <unistd.h>
 
+
 class Rpc {
 private:
         size_t (*rpc_handler[RPC_TYPE_NUM]) (uint8_t* resp_buf,
@@ -28,7 +29,7 @@ private:
         pthread_cond_t recv_cond = PTHREAD_COND_INITIALIZER;
         pthread_mutex_t recv_mtx = PTHREAD_MUTEX_INITIALIZER;
 
-        static uint16_t rpc_seq;
+        uint16_t rpc_seq = 0;
 
 public:
         void online();

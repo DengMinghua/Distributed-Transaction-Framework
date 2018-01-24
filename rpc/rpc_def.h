@@ -84,12 +84,12 @@ struct RpcReq {
     size_t resp_len;
 
     Buffer * cmsg_buf;
-    RpcMsgHdr * cmsg_hdr;
+    RpcMsgHdr * msg_hdr;
 
     uint8_t resp_type;
 
     void freeze(size_t req_len_) {
-        cmsg_hdr->size = req_len_;
+        msg_hdr->size = req_len_;
 
         req_len = req_len_;
         cmsg_buf->cur_ptr += req_len_;
