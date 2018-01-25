@@ -46,9 +46,8 @@ public:
             w_size(0), w_index(0) {};
     
     ~Tx() {
-            assert(tx_status == TxStatus::COMMITTED ||
-                            tx_status == TxStatus::ABORTED);
-            delete rpc_client;
+            //assert(tx_status == TxStatus::COMMITTED ||
+            //                tx_status == TxStatus::ABORTED);
     }
 
     // start new transaction, must be called before add r/w set
@@ -82,6 +81,12 @@ public:
                     uint8_t * resp_type,
                     const uint8_t * req_buf,
                     size_t req_len, void *arg);
+    
+    static size_t handler_for_readnlock(uint8_t * resp_buf,
+                    uint8_t * resp_type,
+                    const uint8_t * req_buf,
+                    size_t req_len, void *arg);
+
 };
 
 #endif

@@ -9,6 +9,9 @@ void* Rpc::local_sim_rpc_listener() {
         pthread_mutex_lock(&mtx);
         while (!send_signal) {
             pthread_cond_wait(&cond, &mtx);
+            if (status == SHUTING_DOWN) {
+                break;
+            }
             RpcReqBatch * batch = &req_batch;
             for (int i = 0; i < MAX_NODES; i++) {
                 if (batch->c_msg_for_node[i] != -1) {
@@ -22,8 +25,9 @@ void* Rpc::local_sim_rpc_listener() {
 
                     while (recv_msg_ptr < recv_msg_end_ptr) {
                         RpcMsgHdr* hdr = (RpcMsgHdr*) recv_msg_ptr;
+                        printf("start of resp %ld\n", (long)resp_buffer->cur_ptr);
                         memcpy(resp_buffer->cur_ptr, hdr, sizeof(RpcMsgHdr));                                    
-
+                        size_t req_buf_size = hdr->size;
                         uint8_t req_type = hdr->msg_type;
                         uint8_t* resp_type = &(((RpcMsgHdr*)(resp_buffer->cur_ptr))->msg_type);
                         uint16_t* resp_size = &(((RpcMsgHdr*)(resp_buffer->cur_ptr))->size);
@@ -34,21 +38,23 @@ void* Rpc::local_sim_rpc_listener() {
                         size_t buf_size = rpc_handler[req_type]((uint8_t*) resp_buffer->cur_ptr, resp_type, 
                                 (uint8_t*)recv_msg_ptr, sizeof(DsReadReq), 
                                 rpc_handler_arg[req_type]);
-
-                        recv_msg_ptr += buf_size;
+                        
+                        resp_buffer->cur_ptr += buf_size;
+                        recv_msg_ptr += req_buf_size;
 
                         (*resp_size) = buf_size;
                     }
                 }
             }
+            send_resp();
         }
         //printf("server sensed\n");
         //pthread_barrier_wait(&barrier);
         send_signal = false;
         pthread_mutex_unlock(&mtx);
         //sleep(5);
-        send_resp();
     }
+    printf("[Server] Server is offline\n");
 }
 
 void * Rpc::local_sim_rpc_listener_helper(void* This) {
@@ -66,9 +72,15 @@ void Rpc::online() {
 }
 
 void Rpc::offline() {
-#ifdef LOCAL_SIM
-    status = OFFLINE;
-    int ret = pthread_cancel(server_tid);
+#ifdef LOCAL_SIM    
+    pthread_mutex_lock(&mtx);
+    send_signal = true;
+    printf("[Server] Server is shuting down\n");
+    status = SHUTING_DOWN; 
+    pthread_cond_signal(&cond);
+    pthread_mutex_unlock(&mtx);
+
+    int ret = pthread_join(server_tid, NULL);
 #endif
 }
 
@@ -115,6 +127,7 @@ RpcReq * Rpc::new_req(uint8_t req_type, int to_which_node, void* resp_buf,
     req->req_buf = cmsg->req_buf.cur_ptr;
     req->msg_hdr = msg_hdr;
     req->cmsg_buf = &(cmsg->req_buf);
+    req->rpc_seq = msg_hdr->rpc_seq;
     (cmsg->num)++;
 
 #ifdef RPC_DEBUG
@@ -211,21 +224,23 @@ void Rpc::recv_resp() {
         while (head_ptr < cur_ptr) {
             RpcMsgHdr * hdr = (RpcMsgHdr *) head_ptr;
             int seq = hdr->rpc_seq;
-            printf("seq is %d\n", seq);
+            //printf("seq is %d\n", seq);
             int type = hdr->msg_type;
-            printf("type is %d\n", type);
+            //printf("type is %d\n", type);
             int size = hdr->size;
-            printf("size is %d\n", size);
+            //printf("size is %d\n", size);
             head_ptr += sizeof(RpcMsgHdr);
+            //printf("reqs:%d\n", req_batch.num_reqs);
+            
             for (int j = 0; j < req_batch.num_reqs; j++) {
-                if (req_batch.reqs[i].rpc_seq == seq) {
+                //printf("%d many\n", req_batch.reqs[j].rpc_seq);
+                if (req_batch.reqs[j].rpc_seq == seq) {
                     printf("[Client] response matched\n");
-                    req_batch.reqs[i].resp_type = type;
-                    memcpy(req_batch.reqs[i].resp_buf, head_ptr, size);
+                    req_batch.reqs[j].resp_type = type;
+                    memcpy(req_batch.reqs[j].resp_buf, head_ptr, size);
                 }
             }
             head_ptr += size;
-            printf("end\n");
         }
     }
     }

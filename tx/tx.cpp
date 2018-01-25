@@ -17,7 +17,11 @@ void Tx::start() {
 
         req_index = 0;
 
-        rpc_client->register_rpc_handler(0,(size_t (*)(uint8_t*, uint8_t*, const uint8_t*, size_t, void*))&Tx::handler_for_read,this);
+         rpc_client->register_rpc_handler(0,
+                         (size_t (*)(uint8_t*, uint8_t*, const uint8_t*, size_t, void*))
+                         &Tx::handler_for_read,this);
+       rpc_client->register_rpc_handler(1,(size_t (*)(uint8_t*, uint8_t*, const uint8_t*, size_t, void*))
+                       &Tx::handler_for_readnlock,this);
 #ifdef TX_DEBUG
         printf("%s\n",__PRETTY_FUNCTION__);
 #endif
@@ -128,7 +132,6 @@ TxStatus Tx::do_read() {
 
                 switch(read_resp_type) {
                         case DsRespType::READ_SUCCESS:
-                                printf("read something!!!\n");
                                 read_item->local_length = tx_rpc_req[resp_cnt]->resp_len - sizeof(RpcMsgHdr);
                                 read_item->done_read = true;
                                 break;
@@ -173,7 +176,7 @@ TxStatus Tx::do_read() {
 
         w_index = w_size;
         r_index = r_size;
-
+        printf("done read\n");
         return tx_status;
 }
 
