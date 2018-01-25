@@ -79,6 +79,8 @@ class Mappings {
                 bool unlock_blocks(int l, int r);
 
                 uint8_t get_block_version(int i);
+
+                void get_blocks_version(int l, int r, uint8_t *); 
                 
                 inline uint8_t* local_sim_get_value(long address) {
 #ifndef LOCAL_SIMULATION

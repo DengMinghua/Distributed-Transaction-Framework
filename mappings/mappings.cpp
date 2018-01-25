@@ -129,6 +129,12 @@ uint8_t Mappings::get_block_version(int i) {
     return block_status[i].version;
 }
 
+void Mappings::get_blocks_version(int l, int r, uint8_t* version) {
+    for (int i = 0; i < r - l; i++) {
+        version[i] = get_block_version(i);
+    }
+}
+
 size_t file_size(int fd) {
     off_t size = lseek(fd, 0, SEEK_END);
     return size;

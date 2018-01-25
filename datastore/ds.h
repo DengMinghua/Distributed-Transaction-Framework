@@ -36,7 +36,7 @@ struct DsReadReq {
 
 struct DsReadResp {
     DsRespType resp_type;
-    uint8_t * local_address;
+    size_t num_blocks;
     size_t length;
 };
 
@@ -57,9 +57,10 @@ size_t ds_forge_write_req(RpcReq *rpc_req,
                 size_t length,
                 void * src_address);
 
-size_t ds_forge_read_resp(Buffer* resp_buf,
+size_t ds_forge_read_resp(uint8_t* resp_buf,
                 DsRespType type,
                 void * local_address,
-                void * remote_address,
-                size_t length);
+                size_t num_blocks,
+                size_t length,
+                uint8_t * version);
 #endif

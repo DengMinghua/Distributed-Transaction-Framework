@@ -31,15 +31,19 @@ size_t ds_forge_write_req(RpcReq *rpc_req,
     return sizeof(DsWriteReq) + length;
 }
 
-size_t ds_forge_read_resp(Buffer* resp_buf,
+size_t ds_forge_read_resp(uint8_t* resp_buf,
                 DsRespType type,
                 void * local_address,
-                void * remote_address,
-                size_t length) {
-    DsReadResp * read_resp = (DsReadResp*)resp_buf->cur_ptr;
+                size_t length,
+                size_t num_blocks,
+                uint8_t *versions) {
+    DsReadResp * read_resp = (DsReadResp*)resp_buf;
     read_resp->resp_type = type;
-    read_resp->local_address = (uint8_t*)local_address;
+    read_resp->num_blocks = num_blocks;
     read_resp->length = length;
-    memcpy(resp_buf->cur_ptr + sizeof(DsReadResp), remote_address, length);
-    return sizeof(DsReadResp) + length;
+    resp_buf += sizeof(DsReadResp);
+    memcpy(resp_buf, versions, num_blocks * sizeof(uint8_t)); 
+    resp_buf += num_blocks * sizeof(uint8_t);
+    memcpy(resp_buf, local_address, length);
+    return sizeof(DsReadResp) + num_blocks * sizeof(uint8_t) + length;
 }

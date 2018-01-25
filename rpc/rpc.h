@@ -48,7 +48,7 @@ public:
         RpcReq * new_req(uint8_t req_type, int to_which_node, void* resp_buf,
                         size_t max_resp_len);
 
-        Buffer* new_resp(int resp_to_whom, int num_reqs, uint32_t req_imm);
+        Buffer* new_resp(int resp_to_whom);
 
         void clear_req_batch();
         
