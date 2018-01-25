@@ -26,6 +26,8 @@ struct TxRwItem {
         bool done_read;
         bool done_lock;
 
+        uint8_t item_resp_buffer[MAX_ITEM_RESP_BUF];
+
         TxRwItem(void* remote_offset_,
                         size_t len_,
                         void* local_offset_,

@@ -25,9 +25,11 @@ private:
         pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
         pthread_mutex_t mtx = PTHREAD_MUTEX_INITIALIZER;
         pthread_barrier_t barrier;
+        bool send_signal = false;
 
         pthread_cond_t recv_cond = PTHREAD_COND_INITIALIZER;
         pthread_mutex_t recv_mtx = PTHREAD_MUTEX_INITIALIZER;
+        bool recv_signal = false;
 
         uint16_t rpc_seq = 0;
 

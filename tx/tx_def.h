@@ -3,6 +3,7 @@
 
 #define MAX_TX_RPC 256
 #define MAX_BLOCKS_PER_REQUEST 256
+#define MAX_ITEM_RESP_BUF 4096
 
 #include <cstddef>
 #include <stdint.h>

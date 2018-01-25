@@ -117,6 +117,8 @@ TxStatus Tx::do_read() {
         }
         // Not yet implemented
         rpc_client->send_reqs();
+         
+        rpc_client->recv_resp();
 
         int resp_cnt = 0;
 
@@ -126,6 +128,7 @@ TxStatus Tx::do_read() {
 
                 switch(read_resp_type) {
                         case DsRespType::READ_SUCCESS:
+                                printf("read something!!!\n");
                                 read_item->local_length = tx_rpc_req[resp_cnt]->resp_len - sizeof(RpcMsgHdr);
                                 read_item->done_read = true;
                                 break;
