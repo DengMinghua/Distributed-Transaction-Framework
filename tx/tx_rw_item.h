@@ -16,6 +16,8 @@ struct TxRwItem {
         void* remote_address;
         size_t remote_length;
 
+        uint8_t block_version[MAX_BLOCKS_PER_REQUEST];
+
         RPCType rpc_type;
 
         int primary_node;

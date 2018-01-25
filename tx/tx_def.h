@@ -2,6 +2,7 @@
 #define TX_DEF_H_
 
 #define MAX_TX_RPC 256
+#define MAX_BLOCKS_PER_REQUEST 256
 
 #include <cstddef>
 #include <stdint.h>
