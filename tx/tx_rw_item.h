@@ -16,6 +16,7 @@ struct TxRwItem {
         void* remote_address;
         size_t remote_length;
 
+        int num_blocks;
         uint8_t block_version[MAX_BLOCKS_PER_REQUEST];
 
         RPCType rpc_type;
@@ -26,7 +27,7 @@ struct TxRwItem {
         bool done_read;
         bool done_lock;
 
-        uint8_t item_resp_buffer[MAX_ITEM_RESP_BUF];
+        //uint8_t item_resp_buffer[MAX_ITEM_RESP_BUF];
 
         TxRwItem(void* remote_offset_,
                         size_t len_,

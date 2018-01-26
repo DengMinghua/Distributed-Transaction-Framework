@@ -25,7 +25,6 @@ void* Rpc::local_sim_rpc_listener() {
 
                     while (recv_msg_ptr < recv_msg_end_ptr) {
                         RpcMsgHdr* hdr = (RpcMsgHdr*) recv_msg_ptr;
-                        printf("start of resp %ld\n", (long)resp_buffer->cur_ptr);
                         memcpy(resp_buffer->cur_ptr, hdr, sizeof(RpcMsgHdr));                                    
                         size_t req_buf_size = hdr->size;
                         uint8_t req_type = hdr->msg_type;
@@ -42,7 +41,7 @@ void* Rpc::local_sim_rpc_listener() {
                         resp_buffer->cur_ptr += buf_size;
                         recv_msg_ptr += req_buf_size;
 
-                        (*resp_size) = buf_size;
+                        (*resp_size) =  buf_size;
                     }
                 }
             }
@@ -237,7 +236,7 @@ void Rpc::recv_resp() {
                 if (req_batch.reqs[j].rpc_seq == seq) {
                     printf("[Client] response matched\n");
                     req_batch.reqs[j].resp_type = type;
-                    memcpy(req_batch.reqs[j].resp_buf, head_ptr, size);
+                    req_batch.reqs[j].resp_buf = head_ptr;
                 }
             }
             head_ptr += size;
@@ -250,27 +249,3 @@ void Rpc::recv_resp() {
 
 }
 
-/*
-#ifdef LOCAL_SIM
-pthread_mutex_lock(&recv_mtx);
-pthread_cond_wait(&recv_cond, &recv_mtx);
-for (int i = 0; i < resp_batch.num_c_msg; i++) {
-RpcCoalMsg * c_msg = &resp_batch.c_msg[i];
-Buffer * buf = &c_msg->resp_buf;
-uint8_t* ptr = buf->cur_ptr;
-for (int j = 0; j < c_msg->num; j++) {
-DsReadResp * resp_head = (DsReadResp *)ptr;
-uint8_t* local_address = resp_head->local_address;
-DsRespType type = resp_head->resp_type;
-size_t length = resp_head->length;
-if (type == READ_SUCCESS)
-for (int k = 0; k < req_batch.num_reqs; k++) 
-if (req_batch.reqs[i].req_resp_buf == local_address) 
-req_batch.reqs[i].resp_type = READ_SUCCESS;
-memcpy(local_address, ptr + sizeof(DsReadResp), length);
-ptr += sizeof(DsReadResp) + length;
-}
-}
-pthread_mutex_unlock(&mtx);
-#endif
- */

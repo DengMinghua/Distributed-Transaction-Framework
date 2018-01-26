@@ -126,6 +126,9 @@ TxStatus Tx::do_read() {
 
         int resp_cnt = 0;
 
+        uint8_t * rpc_resp_buf;
+        DsReadResp * ds_read_resp;
+
         for (size_t i = r_index; i < r_size; i++) {
                 TxRwItem * read_item = &read_set[i];
                 DsRespType read_resp_type = (DsRespType) tx_rpc_req[resp_cnt]->resp_type;
@@ -134,6 +137,19 @@ TxStatus Tx::do_read() {
                         case DsRespType::READ_SUCCESS:
                                 read_item->local_length = tx_rpc_req[resp_cnt]->resp_len - sizeof(RpcMsgHdr);
                                 read_item->done_read = true;
+                                
+                                rpc_resp_buf = tx_rpc_req[resp_cnt]->resp_buf;
+                                
+                                ds_read_resp = (DsReadResp*)rpc_resp_buf;
+                                read_item->num_blocks = ds_read_resp->num_blocks;
+                                read_item->local_length = ds_read_resp->length;
+                                rpc_resp_buf += sizeof(DsReadResp);
+                                
+                                for (int i = 0; i < read_item->num_blocks; i++) 
+                                        (read_item->block_version)[i] = rpc_resp_buf[i];
+                                rpc_resp_buf += (read_item->num_blocks) * sizeof(uint8_t);
+                                memcpy(read_item->local_address, rpc_resp_buf, read_item->local_length);
+
                                 break;
                         case DsRespType::READ_FAILED:
                                 read_item->local_length = 0;
@@ -176,7 +192,7 @@ TxStatus Tx::do_read() {
 
         w_index = w_size;
         r_index = r_size;
-        printf("done read\n");
+        //printf("done read\n");
         return tx_status;
 }
 
