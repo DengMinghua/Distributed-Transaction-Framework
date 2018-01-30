@@ -1,49 +1,54 @@
-#include "../rpc/rpc.h"
 #include "ds.h"
-size_t ds_forge_read_req(RpcReq *rpc_req,
-                DsReqType type,
-                void * address,
-                size_t length) {
-    DsReadReq * req = (DsReadReq * )rpc_req->req_buf;
-    req-> req_type = type;
-    req-> address = (uint8_t*)address;
-    req-> length = length;
-#ifdef DS_DEBUG
+
+DataStore::DataStore(const char * file) {
+    memory_region = NULL;
+    object_region = NULL;
+    init_region(file);
+}
+
+void DataStore::init_region(const char * file) {
     printf("%s\n", __PRETTY_FUNCTION__);
-    printf("\tRead request forged:\n");
-    printf("\trequest type:\t%d\n\t-read %d bytes from address %ld\n",
-                    (int)req->req_type, (int)req->length, (long) req->address);
-#endif
-    return sizeof(DsReadReq);
+    void * addr = NULL;
+    if (file != "") {
+        int fd = open(file, O_RDWR | O_NOATIME | O_CREAT, S_IRWXU);
+        int f_size = file_size(fd);
+        assert(MAX_REGION_SIZE < f_size);
+        addr = (void *)mmap(NULL, MAX_REGION_SIZE, PROT_READ | PROT_WRITE,
+                        MAP_SHARED, fd, 0);
+    }
+    else {
+        addr = malloc(MAX_REGION_SIZE);
+    }
+    memory_region = addr;
+    object_region = new(addr) sparse_hash_map();
+
+    return;
 }
 
-size_t ds_forge_write_req(RpcReq *rpc_req,
-                DsReqType type,
-                void * des_address,
-                size_t length,
-                void * src_address) {
-    DsWriteReq * req = (DsWriteReq * )rpc_req->req_buf;
-    req-> req_type = type;
-    req-> address = (uint8_t*)des_address;
-    req->length = length;
-    uint8_t * val_ptr = (rpc_req->req_buf + sizeof(DsWriteReq));
-    memcpy((uint8_t*)val_ptr, (uint8_t*)src_address, length);
-    return sizeof(DsWriteReq) + length;
+DsObj* DataStore::lookup(const uint64_t hash_key) {
+    return object_region.find(hash_key);
 }
 
-size_t ds_forge_read_resp(uint8_t* resp_buf,
-                DsRespType type,
-                void * local_address,
-                size_t length,
-                size_t num_blocks,
-                uint8_t *versions) {
-    DsReadResp * read_resp = (DsReadResp*)resp_buf;
-    read_resp->resp_type = type;
-    read_resp->num_blocks = num_blocks;
-    read_resp->length = length;
-    resp_buf += sizeof(DsReadResp);
-    memcpy(resp_buf, versions, num_blocks * sizeof(uint8_t)); 
-    resp_buf += num_blocks * sizeof(uint8_t);
-    memcpy(resp_buf, local_address, length);
-    return sizeof(DsReadResp) + num_blocks * sizeof(uint8_t) + length;
+bool DataStore::insert(const uint64_t hash_key, const DsObj* obj) {
+    object_region[hash_key] = *obj;
+    return true;
+}
+
+bool DataStore::lock_obj(const uint64_t hash_key) {
+    ((object_region.find(hash_key))->obj_hdr).locked = 1;
+    return true;
+}
+
+bool DataStore::unlock_obj(const uint64_t hash_key) {
+    ((object_region.find(hash_key))->obj_hdr).locked = 0;
+    return true;
+}
+
+bool DataStore::is_obj_locked(const uint64_t hash_key) {
+    return ((object_region.find(hash_key))->obj-hdr).locked;
+}
+
+size_t file_size(int fd) {
+    off_t size = lseek(fd, 0, SEEK_END);
+    return size;
 }

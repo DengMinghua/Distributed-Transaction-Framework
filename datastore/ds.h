@@ -1,66 +1,42 @@
 #ifndef DS_H_
 #define DS_H_
 
-#define DS_DEBUG 1
-#include "../mappings/mappings.h"
+#include "ds_obj.h"
+#include "ds_req.h"
+
+#include "../extlib/inc/CRCpp/CRC.h"
+#include "../extlib/sparsepp/sparsepp/spp.h"
+
+#include <assert.h>
+#include <stdint.h>
+#include <cstdio>
+#include <sys/types.h>
+#include <unistd.h>
+#include <cstdlib.h>
+#include <sys/mman.h>
+#include <fcntl.h>
 #include <cstring>
+#include <pthread.h>
 
-enum DsReqType {
-    DS_READ,
-    DS_READNLOCK,
-    DS_DELETE,
-    DS_UNLOCK,
-    DS_UPDATE
+#define MAX_REGION_SIZE (4096 * 1024)
+
+class DataStore {
+private:
+    void * memory_region;
+    sparse_hash_map<uint64_t, DsObj> * object_region;
+public:
+    DataStore(const char * file = "");
+    void * init_region(const char * file);
+    DsObj* lookup(const uint64_t hash_key);
+    bool insert(const uint64_t hash_key, const DsObj* obj);
+    bool lock_obj(const uint64_t hash_key);
+    bool unlock_obj(const uint64_t hash_key);
+    bool is_obj_locked(const uint64_t hash_key);
 };
 
-enum DsRespType {
-    READ_SUCCESS,
-    READ_LOCKED,
-    READ_FAILED,
-
-    RNL_SUCCESS,
-    RNL_LOCKED,
-    RNL_FAILED,
-
-    UNLOCK_SUCCESS,
-
-    UPDATE_SUCCESS,
-    UPDATE_FAILED
-};
-
-struct DsReadReq {
-    DsReqType req_type;
-    uint8_t * address;
-    size_t length;
-};
-
-struct DsReadResp {
-    DsRespType resp_type;
-    size_t num_blocks;
-    size_t length;
-};
-
-struct DsWriteReq {
-    DsReqType req_type;
-    uint8_t * address;
-    size_t length;
-};
-
-size_t ds_forge_read_req(RpcReq *rpc_req,
-                DsReqType type,
-                void * address,
-                size_t length);
-
-size_t ds_forge_write_req(RpcReq *rpc_req,
-                DsReqType type,
-                void * des_address,
-                size_t length,
-                void * src_address);
-
-size_t ds_forge_read_resp(uint8_t* resp_buf,
-                DsRespType type,
-                void * local_address,
-                size_t num_blocks,
-                size_t length,
-                uint8_t * version);
+static size_t file_size(int fd) {
+    off_t size = lseek(fd, 0, SEEK_END);
+    return size;
+}
 #endif
+

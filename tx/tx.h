@@ -17,8 +17,9 @@ private:
     // status of current transaction 
     TxStatus tx_status;
     
-    // a transaction should be bound with a memroy address mappings
+    // a transaction should be bound with a mappings and a data store
     Mappings *mappings;
+    DataStore * data_store;
     
     // read set for read_only address
     TxRwItem read_set[TX_MAX_READ_SET];

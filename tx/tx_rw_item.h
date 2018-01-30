@@ -5,59 +5,56 @@
 #include "tx_def.h"
 #include "tx_conf.h"
 #include "../mappings/mappings.h"
+#include "../datastore/ds_obj.h"
 
 struct TxRwItem {
         TxRwMode rw_mode;
-
-        void* local_address;
-        size_t local_length;
-
-        bool local_malloc;
-        void* remote_address;
-        size_t remote_length;
-
-        int num_blocks;
-        uint8_t block_version[MAX_BLOCKS_PER_REQUEST];
+        
+        uint64_t obj_key;
+        DsObj* obj;
+        bool local_new_obj;
 
         RPCType rpc_type;
 
         int primary_node;
         int backup_nodes[TX_MAX_BACKUPS];
 
+        uint32_t version;
+
         bool done_read;
         bool done_lock;
 
-        //uint8_t item_resp_buffer[MAX_ITEM_RESP_BUF];
-
-        TxRwItem(void* remote_offset_,
-                        size_t len_,
-                        void* local_offset_,
+        TxRwItem(uint64_t obj_key_,
+                        DsObj* obj_ = NULL,
                         TxRwMode mode_):
-                local_length(len_),
-                remote_address(remote_offset_),
-                remote_length(len_),
+                obj_key(obj_key_),
+                obj(obj_),
                 rw_mode(mode_) {
 
                         if (mode_ == READ) rpc_type = RPCType::RPC_READ;
                         if (mode_ == UPDATE) rpc_type = RPCType::RPC_READNLOCK;
 
-                        if (local_offset_ == NULL) {
-                                local_address = (void*)malloc(local_length);
-                                local_malloc = true;
+                        if (obj_ == NULL) {
+                                obj = new obj();
+                                local_new_obj = true;
                         }
                         else {
-                                local_malloc = false;
+                                local_new_obj = false;
                         }
                 }
         TxRwItem(){}
 
+        ~TxRwItem() {
+            if (local_new_obj) delete obj;
+        }
+
         inline void bind_primary(Mappings * mappings) {
-                primary_node = mappings->get_primary(remote_address);
+                primary_node = mappings->get_primary(obj_key);
         }
 
         inline void bind_backups(Mappings * mappings) {
                 for (int i = 0; i < mappings->get_num_backups(); i++) {
-                        backup_nodes[i] = mappings->get_backups(remote_address, i);
+                        backup_nodes[i] = mappings->get_backups(obj_key, i);
                 }
         }
 

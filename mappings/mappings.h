@@ -24,14 +24,6 @@
 
 #define MAX_END_POINT_SIZE 64
 
-static size_t file_size(int fd);
-
-
-struct BlockStatus {
-    bool is_lock = false;
-    uint8_t version = 0;
-};
-
 class Mappings {
         private:
 
@@ -43,16 +35,7 @@ class Mappings {
                 int num_backups;
                 int num_replicas;
 
-                
-                long memory_region_size;
-                uint8_t *region_ptr;
-                uint8_t *local_sim_regions_ptr[MAX_LOCAL_SIM_NODES];
-                char* end_points[MAX_END_POINT_SIZE];
 
-                BlockStatus block_status[NUM_BLOCKS];
-                pthread_mutex_t block_status_lock;
-
-                void * setup_region_on_node(int node_id, const char * file = "");
         public:
                 Mappings(int node_id,
                                 int tot_num_nodes_,
@@ -62,43 +45,11 @@ class Mappings {
 
                 ~Mappings();
 
-                int get_primary(void* address);
+                int get_primary(uint64_t address);
 
                 int get_backups_from_primary(int primary, int back_i);
 
-                int get_backups(void* address, int back_i);
-
-                int get_num_backups();
-                
-                void init_block_status();
-
-                bool check_blocks(int l, int r);
-                
-                bool lock_blocks(int l, int r);
-
-                bool unlock_blocks(int l, int r);
-
-                uint8_t get_block_version(int i);
-
-                void get_blocks_version(int l, int r, uint8_t *); 
-                
-                inline uint8_t* local_sim_get_value(long address) {
-#ifndef LOCAL_SIMULATION
-                        assert(0);
-#endif
-                        uint8_t* ptr =  local_sim_regions_ptr[get_primary((void*)address)];
-                        ptr += address / memory_region_size;
-                        return ptr;
-                }
-
-                inline void local_sim_put_value(long address, uint8_t* value, size_t len) {
-#ifndef LOCAL_SIMULATION
-                        assert(0);
-#endif
-                        uint8_t* ptr =  local_sim_regions_ptr[get_primary((void*)address)];
-                        ptr += address / memory_region_size;
-                        memcpy(ptr, value, len);
-                }
+                int get_backups(uint64_t address, int back_i);
 };
 
 #endif
