@@ -105,7 +105,9 @@ RpcReq * Rpc::new_req(uint8_t req_type, int to_which_node, void* resp_buf,
 
     req->resp_buf = (uint8_t*)resp_buf;
     req->max_resp_len = max_resp_len;
+    
     req_batch.num_reqs++;
+    
     int c_msg_index = -1;
 
     if (req_batch.c_msg_for_node[to_which_node] >= 0) {
@@ -118,15 +120,19 @@ RpcReq * Rpc::new_req(uint8_t req_type, int to_which_node, void* resp_buf,
 
         req_batch.c_msg[c_msg_index].node_id = to_which_node;
     }
+
     RpcCoalMsg * cmsg = &req_batch.c_msg[c_msg_index];
+
     RpcMsgHdr * msg_hdr = (RpcMsgHdr *) ((cmsg->req_buf).cur_ptr);
     msg_hdr->msg_type = req_type;
     msg_hdr->rpc_seq = rpc_seq++;
     cmsg->req_buf.cur_ptr += sizeof(RpcMsgHdr);
+
     req->req_buf = cmsg->req_buf.cur_ptr;
     req->msg_hdr = msg_hdr;
     req->cmsg_buf = &(cmsg->req_buf);
     req->rpc_seq = msg_hdr->rpc_seq;
+
     (cmsg->num)++;
 
 #ifdef RPC_DEBUG
@@ -176,8 +182,7 @@ void Rpc::send_reqs() {
                 ptr += sizeof(RpcMsgHdr);
                 DsReadReq * req = (DsReadReq *) ptr;
                 printf("\tds req type:\t%ld\n", (long)(req->req_type));
-                printf("\tds req address:\t%ld\n", (long)(req->address));
-                printf("\tds req length:\t%ld\n", (long)(req->length));
+                printf("\tds req obj key:\t%ld\n", (long)(req->obj_key));
                 ptr += sizeof(DsReadReq);
                 printf("END REQ\n");
             }

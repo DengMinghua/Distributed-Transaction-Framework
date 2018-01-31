@@ -3,6 +3,7 @@
 
 #define DS_DEBUG 1
 #include "../mappings/mappings.h"
+#include "../rpc/rpc.h"
 #include <cstring>
 #include "ds_obj.h"
 
@@ -31,37 +32,30 @@ enum DsRespType {
 
 struct DsReadReq {
     DsReqType req_type;
-    uint8_t * address;
-    size_t length;
+    uint64_t obj_key;
 };
 
 struct DsReadResp {
     DsRespType resp_type;
-    size_t num_blocks;
-    size_t length;
+    DsObj requested_obj;
 };
 
 struct DsWriteReq {
     DsReqType req_type;
-    uint8_t * address;
-    size_t length;
+    uint64_t obj_key;
+    DsObj obj;
 };
 
 size_t ds_forge_read_req(RpcReq *rpc_req,
                 DsReqType type,
-                void * address,
-                size_t length);
+                uint64_t obj_key);
 
 size_t ds_forge_write_req(RpcReq *rpc_req,
                 DsReqType type,
-                void * des_address,
-                size_t length,
-                void * src_address);
+                uint64_t obj_key,
+                DsObj* obj);
 
 size_t ds_forge_read_resp(uint8_t* resp_buf,
                 DsRespType type,
-                void * local_address,
-                size_t num_blocks,
-                size_t length,
-                uint8_t * version);
+                DsObj* requested_obj);
 #endif

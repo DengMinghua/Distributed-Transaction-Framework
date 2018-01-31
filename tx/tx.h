@@ -20,6 +20,8 @@ private:
     // a transaction should be bound with a mappings and a data store
     Mappings *mappings;
     DataStore * data_store;
+    // RPC related, rpc_client is used for communication among machines
+    Rpc *rpc_client;       
     
     // read set for read_only address
     TxRwItem read_set[TX_MAX_READ_SET];
@@ -30,18 +32,15 @@ private:
     TxRwItem write_set[TX_MAX_WRITE_SET];
     size_t w_size;
     size_t w_index;
-
-
-    // RPC related, rpc_client is used for communication among machines
-    Rpc *rpc_client;    
     
     // bookkeeping rpc request that related to current transaction
     RpcReq *tx_rpc_req[MAX_TX_RPC];
     size_t req_index;
 
 public:
-    Tx(Mappings * mappings_, Rpc * rpc_client_):
+    Tx(Mappings * mappings_, Rpc * rpc_client_, DataStore* data_store_):
             mappings(mappings_), rpc_client(rpc_client_),
+            data_store(data_store_),
             tx_status(TxStatus::COMMITTED),
             r_size(0), r_index(0),
             w_size(0), w_index(0) {};
@@ -57,10 +56,9 @@ public:
     // used to add address to r/w sets
     // will return a temp address for remote data that can be read/modified after do_read()
     // when given local_offset, remote data will be copy to specified local address
-    void* add_to_write_set(void* remote_offset, size_t len, 
-                    TxRwMode mode, void* local_offset = NULL);
-    void* add_to_read_set(void* remote_offset, size_t len,
-                    void* local_offset = NULL);
+    void add_to_write_set(uint64_t obj_key, DsObj * obj, 
+                    TxRwMode mode);
+    void add_to_read_set(uint64_t obj_key, DsObj * obj);
     
     // read specified data in r/w sets from remote
     TxStatus do_read();

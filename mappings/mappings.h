@@ -43,13 +43,15 @@ class Mappings {
                                 int num_backups_
                         );
 
-                ~Mappings();
+                //~Mappings();
 
                 int get_primary(uint64_t address);
 
                 int get_backups_from_primary(int primary, int back_i);
 
                 int get_backups(uint64_t address, int back_i);
+
+                int get_num_backups();
 };
 
 #endif

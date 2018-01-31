@@ -25,7 +25,7 @@ struct TxRwItem {
         bool done_lock;
 
         TxRwItem(uint64_t obj_key_,
-                        DsObj* obj_ = NULL,
+                        DsObj* obj_,
                         TxRwMode mode_):
                 obj_key(obj_key_),
                 obj(obj_),
@@ -35,7 +35,7 @@ struct TxRwItem {
                         if (mode_ == UPDATE) rpc_type = RPCType::RPC_READNLOCK;
 
                         if (obj_ == NULL) {
-                                obj = new obj();
+                                obj = new DsObj();
                                 local_new_obj = true;
                         }
                         else {
