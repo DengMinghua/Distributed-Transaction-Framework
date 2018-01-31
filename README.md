@@ -8,9 +8,9 @@ An under-constructed distributed transaction framework based on two-sided RDMA.
 * Several test callback function on server side (for data read and lock&read request)
 * Debug mode for major modules
 * Local simulation mode that can go through the execute/ validation phase
+* Switch from shared memory based to object based
 
 ## Ongoing
-* Switch from shared memory based to object based
 * See whether single-thread sequential read is better than multi threads async read
 
 ## Todo
