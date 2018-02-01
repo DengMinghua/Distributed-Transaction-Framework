@@ -46,6 +46,7 @@ public:
             w_size(0), w_index(0) {};
     
     ~Tx() {
+	    //printf("done\n");
             //assert(tx_status == TxStatus::COMMITTED ||
             //                tx_status == TxStatus::ABORTED);
     }

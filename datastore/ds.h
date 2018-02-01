@@ -26,6 +26,7 @@ private:
     spp::sparse_hash_map<uint64_t, DsObj> * object_region;
 public:
     DataStore(const char * file = "");
+    ~DataStore();
     void  init_region(const char * file);
     DsObj* lookup(const uint64_t hash_key);
     bool insert(const uint64_t hash_key, const DsObj* obj);
