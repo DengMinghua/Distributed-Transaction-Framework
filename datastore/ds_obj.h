@@ -17,8 +17,8 @@ struct DsObj {
     DsObjHdr obj_hdr;
     uint8_t obj[OBJ_MAX_SIZE];
 
-    DsObj(uint8_t* val, size_t val_size, bool locked = false) {
-        memcpy(obj, val, val_size);
+    DsObj(void* val, size_t val_size, bool locked = false) {
+        memcpy(obj, (uint8_t*)val, val_size);
         obj_hdr.value_size = val_size;
         obj_hdr.locked = locked;
         obj_hdr.version = 0;
