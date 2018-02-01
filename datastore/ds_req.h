@@ -31,17 +31,17 @@ enum DsRespType {
 };
 
 struct DsReadReq {
-    DsReqType req_type;
+    //DsReqType req_type;
     uint64_t obj_key;
 };
 
 struct DsReadResp {
-    DsRespType resp_type;
+    // DsRespType resp_type;
     DsObj requested_obj;
 };
 
 struct DsWriteReq {
-    DsReqType req_type;
+    // DsReqType req_type;
     uint64_t obj_key;
     DsObj obj;
 };
