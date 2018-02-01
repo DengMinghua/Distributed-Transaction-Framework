@@ -11,9 +11,10 @@ An under-constructed distributed transaction framework based on two-sided RDMA.
 * Switch from shared memory based to object based
 
 ## Ongoing
-* See whether single-thread sequential read is better than multi threads async read
+* Modify commit part to fit with two phase commit model
 
 ## Todo
+* See whether single-thread sequential read is better than multi threads async read
 * Integrate RDMA lib into RPC module (multi client threads vs single client thread for sending / one thread server for computing and response)  
-* Modify commit part to fit with two phase commit model
+
 
