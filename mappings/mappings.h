@@ -84,25 +84,25 @@ class Mappings {
 
 	void get_blocks_version(int l, int r, uint8_t *); 
 
-	inline uint8_t* local_sim_get_value(long address) {
+	inline void* local_sim_get_value(void* address) {
 
 #ifndef LOCAL_SIMULATION
 	    assert(0);
 #endif
 
-	    uint8_t* ptr =  local_sim_regions_ptr[get_primary((void*)address)];
-	    ptr += address / memory_region_size;
+	    uint8_t* ptr =  local_sim_regions_ptr[get_primary(address)];
+	    ptr += (uint64_t)address / memory_region_size;
 	    return ptr;
 	}
 
-	inline void local_sim_put_value(long address, uint8_t* value, size_t len) {
+	inline void local_sim_put_value(void* address, void* value, size_t len) {
 
 #ifndef LOCAL_SIMULATION
 	    assert(0);
 #endif
 
-	    uint8_t* ptr =  local_sim_regions_ptr[get_primary((void*)address)];
-	    ptr += address / memory_region_size;
+	    uint8_t* ptr =  local_sim_regions_ptr[get_primary(address)];
+	    ptr += (uint64_t)address / memory_region_size;
 	    memcpy(ptr, value, len);
 	}
 };

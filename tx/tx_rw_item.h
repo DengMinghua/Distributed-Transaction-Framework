@@ -5,6 +5,7 @@
 #include "tx_def.h"
 #include "tx_conf.h"
 #include "../mappings/mappings.h"
+#include "../datastore/ds.h"
 
 struct TxRwItem {
         TxRwMode rw_mode;
@@ -38,8 +39,8 @@ struct TxRwItem {
                 remote_length(len_),
                 rw_mode(mode_) {
 
-                        if (mode_ == READ) rpc_type = RPCType::RPC_READ;
-                        if (mode_ == UPDATE) rpc_type = RPCType::RPC_READNLOCK;
+                        if (mode_ == READ) rpc_type = (RPCType)DsReqType::DS_READ; 
+                        if (mode_ == UPDATE) rpc_type = (RPCType)DsReqType::DS_READNLOCK;
 
                         if (local_offset_ == NULL) {
                                 local_address = (void*)malloc(local_length);
