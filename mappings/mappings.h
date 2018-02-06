@@ -33,72 +33,78 @@ struct BlockStatus {
 };
 
 class Mappings {
-        private:
 
-                int node_id;
+    private:
 
-                int tot_num_nodes;
-                int tot_num_primarys;
+	int node_id;
 
-                int num_backups;
-                int num_replicas;
+	int tot_num_nodes;
+	int tot_num_primarys;
 
-                
-                long memory_region_size;
-                uint8_t *region_ptr;
-                uint8_t *local_sim_regions_ptr[MAX_LOCAL_SIM_NODES];
-                char* end_points[MAX_END_POINT_SIZE];
+	int num_backups;
+	int num_replicas;
 
-                BlockStatus block_status[NUM_BLOCKS];
-                pthread_mutex_t block_status_lock;
 
-                void * setup_region_on_node(int node_id, const char * file = "");
-        public:
-                Mappings(int node_id,
-                                int tot_num_nodes_,
-                                int tot_num_primarys_,
-                                int num_backups_
-                        );
+	long memory_region_size;
+	uint8_t *region_ptr;
+	uint8_t *local_sim_regions_ptr[MAX_LOCAL_SIM_NODES];
+	char* end_points[MAX_END_POINT_SIZE];
 
-                ~Mappings();
+	BlockStatus block_status[NUM_BLOCKS];
+	pthread_mutex_t block_status_lock;
 
-                int get_primary(void* address);
+	void * setup_region_on_node(int node_id, const char * file = "");
+    
+    public:
+	Mappings(int node_id,
+		int tot_num_nodes_,
+		int tot_num_primarys_,
+		int num_backups_
+		);
 
-                int get_backups_from_primary(int primary, int back_i);
+	~Mappings();
 
-                int get_backups(void* address, int back_i);
+	int get_primary(void* address);
 
-                int get_num_backups();
-                
-                void init_block_status();
+	int get_backups_from_primary(int primary, int back_i);
 
-                bool check_blocks(int l, int r);
-                
-                bool lock_blocks(int l, int r);
+	int get_backups(void* address, int back_i);
 
-                bool unlock_blocks(int l, int r);
+	int get_num_backups();
 
-                uint8_t get_block_version(int i);
+	void init_block_status();
 
-                void get_blocks_version(int l, int r, uint8_t *); 
-                
-                inline uint8_t* local_sim_get_value(long address) {
+	bool check_blocks(int l, int r);
+
+	bool lock_blocks(int l, int r);
+
+	bool unlock_blocks(int l, int r);
+
+	uint8_t get_block_version(int i);
+
+	void get_blocks_version(int l, int r, uint8_t *); 
+
+	inline uint8_t* local_sim_get_value(long address) {
+
 #ifndef LOCAL_SIMULATION
-                        assert(0);
+	    assert(0);
 #endif
-                        uint8_t* ptr =  local_sim_regions_ptr[get_primary((void*)address)];
-                        ptr += address / memory_region_size;
-                        return ptr;
-                }
 
-                inline void local_sim_put_value(long address, uint8_t* value, size_t len) {
+	    uint8_t* ptr =  local_sim_regions_ptr[get_primary((void*)address)];
+	    ptr += address / memory_region_size;
+	    return ptr;
+	}
+
+	inline void local_sim_put_value(long address, uint8_t* value, size_t len) {
+
 #ifndef LOCAL_SIMULATION
-                        assert(0);
+	    assert(0);
 #endif
-                        uint8_t* ptr =  local_sim_regions_ptr[get_primary((void*)address)];
-                        ptr += address / memory_region_size;
-                        memcpy(ptr, value, len);
-                }
+
+	    uint8_t* ptr =  local_sim_regions_ptr[get_primary((void*)address)];
+	    ptr += address / memory_region_size;
+	    memcpy(ptr, value, len);
+	}
 };
 
 #endif

@@ -18,7 +18,6 @@ size_t Tx::handler_for_read(uint8_t * resp_buf,
     tx_this->mappings->get_blocks_version(address / BLOCK_SIZE, (address + len) / BLOCK_SIZE + 1, block_version);
     int blocks = len / BLOCK_SIZE + 1;
     int resp_size = ds_forge_read_resp(buf, DsRespType::READ_SUCCESS, value, len, blocks, block_version);
-    //(resp_type)[0] = DsRespType::READ_SUCCESS;
     return resp_size;
 }
 
@@ -39,7 +38,6 @@ size_t Tx::handler_for_readnlock(uint8_t * resp_buf,
     tx_this->mappings->get_blocks_version(address / BLOCK_SIZE, (address + len) / BLOCK_SIZE + 1, block_version);
     int blocks = len / BLOCK_SIZE + 1;
     int resp_size = ds_forge_read_resp(buf, DsRespType::READ_SUCCESS, value, len, blocks, block_version);
-    //(resp_type)[0] = DsRespType::READ_SUCCESS;
     
     return resp_size;
 }
