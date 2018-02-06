@@ -10,10 +10,7 @@ An under-constructed distributed transaction framework based on two-sided RDMA.
 * Local simulation mode that can go through the execute/ validation phase
 
 ## Ongoing
-* Switch from shared memory based to object based
-* See whether single-thread sequential read is better than multi threads async read
-
-## Todo
-* Integrate RDMA lib into RPC module (multi client threads vs single client thread for sending / one thread server for computing and response)  
 * Modify commit part to fit with two phase commit model
 
+## Todo
+* Integrate RDMA lib into RPC module 
