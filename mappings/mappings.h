@@ -24,12 +24,19 @@
 
 #define MAX_END_POINT_SIZE 64
 
+#define MAX_REGION_MANAGED_BY_ONE_NODE 8
+
 static size_t file_size(int fd);
 
 
 struct BlockStatus {
     bool is_lock = false;
     uint8_t version = 0;
+};
+
+struct RegionGroup {
+    uint8_t* region_ptrs[MAX_REGION_MANAGED_BY_ONE_NODE];
+    int region_ids[MAX_REGION_MANAGED_BY_ONE_NODE];
 };
 
 class Mappings {
@@ -46,8 +53,8 @@ class Mappings {
 
 
 	long memory_region_size;
-	uint8_t *region_ptr;
-	uint8_t *local_sim_regions_ptr[MAX_LOCAL_SIM_NODES];
+	RegionGroup regions;
+	RegionGroup local_sim_regions[MAX_LOCAL_SIM_NODES];
 	char* end_points[MAX_END_POINT_SIZE];
 
 	BlockStatus block_status[NUM_BLOCKS];
@@ -72,6 +79,8 @@ class Mappings {
 
 	int get_num_backups();
 
+    int get_level_from_node(int node_id, void* address);
+
 	void init_block_status();
 
 	bool check_blocks(int l, int r);
@@ -89,9 +98,10 @@ class Mappings {
 #ifndef LOCAL_SIMULATION
 	    assert(0);
 #endif
-
-	    uint8_t* ptr =  local_sim_regions_ptr[get_primary(address)];
-	    ptr += (uint64_t)address / memory_region_size;
+        int node = get_primary(address);
+        int level = get_level_from_node(node, address);
+	    uint8_t* ptr =  local_sim_regions[node].region_ptrs[level];
+	    ptr += (uint64_t)address % memory_region_size;
 	    return ptr;
 	}
 
@@ -100,9 +110,11 @@ class Mappings {
 #ifndef LOCAL_SIMULATION
 	    assert(0);
 #endif
+        int node = get_primary(address);
+        int level = get_level_from_node(node, address);
+	    uint8_t* ptr =  local_sim_regions[node].region_ptrs[level];
+	    ptr += (uint64_t)address % memory_region_size;
 
-	    uint8_t* ptr =  local_sim_regions_ptr[get_primary(address)];
-	    ptr += (uint64_t)address / memory_region_size;
 	    memcpy(ptr, value, len);
 	}
 };

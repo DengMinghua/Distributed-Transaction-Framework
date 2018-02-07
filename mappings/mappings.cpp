@@ -9,11 +9,24 @@ Mappings::Mappings(int node_id_, int tot_num_nodes_, int tot_num_primarys_,
 	assert(tot_num_primarys < tot_num_nodes);
 
 	if (LOCAL_SIMULATION) {
-	    for (int i = 0; i < tot_num_nodes; i++)
-		local_sim_regions_ptr[i] = (uint8_t*) setup_region_on_node(i);
+	    for (int i = 0; i < (tot_num_primarys * (num_backups + 1)); i++) {
+            int node = i % tot_num_nodes;
+            int level = i / tot_num_nodes;
+            int region_id = i / (num_backups + 1);
+		    local_sim_regions[node].region_ptrs[level] =
+                (uint8_t*) setup_region_on_node(i);
+            local_sim_regions[node].region_ids[level] = 
+                region_id;
+        }
 	}
 	else {
-	    region_ptr = (uint8_t *) setup_region_on_node(node_id);
+        int i = 0;
+        while (i * (node_id + 1) <= tot_num_primarys * (num_backups + 1)) {
+            regions.region_ptrs[i] = (uint8_t*) setup_region_on_node(node_id);
+            regions.region_ids[i] = i * (node_id + 1) / (num_backups + 1);
+            i++;
+        }
+	    //region_ptr = (uint8_t *) setup_region_on_node(node_id);
 	    // Add endpoint info here in network mode
 	}
 
@@ -23,8 +36,9 @@ Mappings::Mappings(int node_id_, int tot_num_nodes_, int tot_num_primarys_,
 Mappings::~Mappings() {
 
     for (int i = 0 ; i < tot_num_nodes; i++){
-	if (local_sim_regions_ptr[i] != NULL)
-	    free(local_sim_regions_ptr[i]);
+        for (int j = 0; j < MAX_REGION_MANAGED_BY_ONE_NODE; j++)
+	if (local_sim_regions[i].region_ptrs[j] != NULL)
+	    free(local_sim_regions[i].region_ptrs[j]);
     }
 
     pthread_mutex_destroy(&block_status_lock);
@@ -46,6 +60,14 @@ int Mappings::get_backups(void * offset, int back_i) {
     return get_backups_from_primary(get_primary(offset), back_i); 
 }
 
+int Mappings::get_level_from_node(int node_id, void * address) {
+    int region_id = (uint64_t)address / REGION_SIZE;
+    for (int i = 0; i < MAX_REGION_MANAGED_BY_ONE_NODE; i++) {
+        if (region_id == local_sim_regions[node_id].region_ids[i])
+            return i;
+    }
+    return -1;
+}
 
 int Mappings::get_num_backups() {
     return num_backups;
